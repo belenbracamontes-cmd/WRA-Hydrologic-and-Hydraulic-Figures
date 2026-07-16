@@ -42,6 +42,10 @@ st.markdown(
     - **📈 Peak Flow Viewer** — annual peak-flow bar chart with return-period
       bands, pulled live from USGS. Supports a single station or a
       side-by-side two-station comparison.
+    - **📊 Annual Flow Chart** — dual-axis grouped bar chart of annual peak
+      flow and annual average flow (Balance Hydrologics "Figure 3" style),
+      pulled live from USGS. Supports a single station or a side-by-side
+      two-station comparison.
 
     More tools will show up here as they're added — each one lives as its
     own file in the `pages/` folder, so the sidebar navigation updates
