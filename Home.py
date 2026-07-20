@@ -46,6 +46,10 @@ st.markdown(
       flow and annual average flow (Balance Hydrologics "Figure 3" style),
       pulled live from USGS. Supports a single station or a side-by-side
       two-station comparison.
+    - **📉 LP3 Flood Frequency** — Log-Pearson Type III flood frequency
+      analysis (Bulletin 17C, Wilson-Hilferty quantiles), producing a
+      probability plot in USGS Peakfq / Figure 10-13 style with design-flow
+      tables and confidence limits.
 
     More tools will show up here as they're added — each one lives as its
     own file in the `pages/` folder, so the sidebar navigation updates
