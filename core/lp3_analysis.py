@@ -35,9 +35,11 @@ rcParams["axes.labelsize"]  = 11
 rcParams["xtick.labelsize"] = 9
 rcParams["ytick.labelsize"] = 9
 
-# Standard and extrapolated return periods offered in the UI.
+# Standard and extrapolated return periods. RP_ALL is what the page tabulates
+# on every run (design flows through the 1000-yr event).
 RP_STD = [2, 5, 10, 25, 50, 100]
 RP_EXT = [200, 500, 1000]
+RP_ALL = RP_STD + RP_EXT
 
 # AEP ticks for the bottom axis (%, same as Peakfq / B17C Figure 10-13)
 AEP_TICKS_PCT = [99.5, 99, 95, 90, 80, 65, 50, 35, 20, 10, 5, 4, 2, 1,
@@ -333,8 +335,7 @@ def lp3_params_table(datasets):
 def build_table_figure(summary):
     """
     Render each station's design-flow table as a matplotlib figure, stacked
-    vertically, with rows for return periods > 100-yr highlighted as
-    extrapolations. Returns the Figure (does not save).
+    vertically. Returns the Figure (does not save).
     """
     fig_parts = [(title, pd.DataFrame(rows)) for title, rows in summary.items()]
     n_stations = len(fig_parts)
@@ -351,20 +352,9 @@ def build_table_figure(summary):
         ax.axis("off")
         n_c = len(df_tbl.columns)
 
-        def _rp_val(s):
-            try:
-                return float(str(s).replace("-yr", "").replace(",", ""))
-            except Exception:
-                return 0
-
-        row_colors = [
-            ["#fff8e1" if _rp_val(row.get("Return Period", "0")) > 100 else "#ffffff"] * n_c
-            for _, row in df_tbl.iterrows()
-        ]
-
         tbl = ax.table(
             cellText=df_tbl.values, colLabels=df_tbl.columns.tolist(),
-            cellColours=row_colors, colColours=["#d0e4f7"] * n_c,
+            colColours=["#d0e4f7"] * n_c,
             cellLoc="center", loc="center",
         )
         tbl.auto_set_font_size(False)
@@ -379,8 +369,5 @@ def build_table_figure(summary):
         ax.set_title(station_title, fontsize=11, fontweight="bold",
                      fontfamily="Verdana", pad=6, loc="left")
 
-    fig.text(0.5, 0.005,
-             "Rows with RP > 100-yr (yellow) are extrapolations beyond the period of record.",
-             ha="center", va="bottom", fontsize=7.5, color="#888888", fontfamily="Verdana")
     fig.tight_layout(rect=[0, 0.025, 1, 1])
     return fig

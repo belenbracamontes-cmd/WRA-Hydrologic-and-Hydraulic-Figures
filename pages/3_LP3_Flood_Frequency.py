@@ -7,6 +7,11 @@ layer and file-save mechanism were converted.
 
 Differences from the notebook version:
   - Sidebar widgets replace ipywidgets controls.
+  - Single-station only -- no second-station comparison.
+  - Design return periods are no longer user-selectable; every run tabulates
+    the full standard set through 1000-yr (see core.lp3_analysis.RP_ALL).
+  - An optional "Water years to consider" range slider lets you restrict the
+    LP3 fit to a subset of the station's period of record.
   - "Run LP3" fetches + caches USGS data in session_state.
   - The tkinter "Save SVG" file-dialog buttons (plot and table) are replaced
     with browser download buttons.
@@ -14,6 +19,7 @@ Differences from the notebook version:
     (same as the other two pages) -- drop your logo file in later.
 """
 
+import datetime as dt
 import sys
 from io import BytesIO
 from pathlib import Path
@@ -29,11 +35,12 @@ from core.lp3_analysis import (
     make_lp3_plot,
     lp3_params_table,
     build_table_figure,
-    RP_STD,
-    RP_EXT,
+    RP_ALL,
 )
 
 st.set_page_config(page_title="LP3 Flood Frequency", page_icon="📉", layout="wide")
+
+_CURRENT_YEAR = dt.date.today().year
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -54,21 +61,11 @@ with col_title:
     st.caption("Bulletin 17C / standard LP3 method. Produces a probability plot matching USGS Peakfq / Figure 10-13 style.")
 
 with st.sidebar:
-    st.header("Station 1")
+    st.header("Station")
     s1_id = st.text_input("Station ID", placeholder="e.g. 11113000", key="lp3_s1_id")
     s1_color = st.color_picker("Color", "#c0392b", key="lp3_s1_color")
     s1_label = st.text_input("Label (optional)", key="lp3_s1_label",
-                              placeholder="Station 1 name")
-
-    st.divider()
-    compare = st.checkbox("Compare a second station", key="lp3_compare")
-    s2_id, s2_color, s2_label = "", "#2980b9", ""
-    if compare:
-        st.subheader("Station 2")
-        s2_id = st.text_input("Station ID", placeholder="e.g. 11109000", key="lp3_s2_id")
-        s2_color = st.color_picker("Color", "#2980b9", key="lp3_s2_color")
-        s2_label = st.text_input("Label (optional)", key="lp3_s2_label",
-                                  placeholder="Station 2 name")
+                              placeholder="Station name")
 
     st.divider()
     title = st.text_input("Title (optional)", key="lp3_title",
@@ -76,34 +73,37 @@ with st.sidebar:
     show_ci = st.checkbox("Show 2.5%/97.5% confidence limits", value=True, key="lp3_show_ci")
 
     st.divider()
-    st.write("**Design return periods to tabulate:**")
-    selected_rps = []
-    std_cols = st.columns(len(RP_STD))
-    for col, rp in zip(std_cols, RP_STD):
-        with col:
-            if st.checkbox(f"{rp}-yr", value=True, key=f"lp3_rp_{rp}"):
-                selected_rps.append(rp)
-    st.caption("⚠️ Extrapolations (use with caution):")
-    ext_cols = st.columns(len(RP_EXT))
-    for col, rp in zip(ext_cols, RP_EXT):
-        with col:
-            if st.checkbox(f"{rp}-yr", value=False, key=f"lp3_rp_{rp}"):
-                selected_rps.append(rp)
+    custom_years = st.checkbox("Water years to consider (optional)", key="lp3_custom_years")
+    year_range = None
+    if custom_years:
+        year_range = st.slider(
+            "Water year range", min_value=1900, max_value=_CURRENT_YEAR + 1,
+            value=(1900, _CURRENT_YEAR + 1), key="lp3_year_range",
+        )
+        st.caption("Only peak flows within this range are used in the LP3 fit.")
 
     run = st.button("Run LP3", type="primary", use_container_width=True)
 
 if run:
     if not s1_id.strip():
-        st.error("Enter a Station ID for Station 1.")
+        st.error("Enter a Station ID.")
         st.stop()
-    if not selected_rps:
-        selected_rps = RP_STD
 
     datasets = []
     try:
         sid1 = s1_id.strip()
         with st.spinner(f"Fetching peak flows for station {sid1}..."):
             df1 = cached_fetch_peaks(sid1)
+
+        if year_range:
+            df1 = df1[(df1["year"] >= year_range[0]) & (df1["year"] <= year_range[1])]
+            if df1.empty:
+                st.error(
+                    f"No peak-flow data for station {sid1} in water years "
+                    f"{year_range[0]}–{year_range[1]}. Widen the range and try again."
+                )
+                st.stop()
+
         if len(df1) < 10:
             st.warning(
                 f"Station {sid1} has only {len(df1)} years of peak-flow "
@@ -116,25 +116,12 @@ if run:
             "label": s1_label.strip(),
             "color": s1_color,
         })
-
-        if compare and s2_id.strip():
-            sid2 = s2_id.strip()
-            with st.spinner(f"Fetching peak flows for station {sid2}..."):
-                df2 = cached_fetch_peaks(sid2)
-            datasets.append({
-                "peak_va": df2["peak_va"],
-                "station_id": sid2,
-                "label": s2_label.strip(),
-                "color": s2_color,
-            })
     except Exception as e:
         st.error(f"Error fetching data: {e}")
         st.stop()
 
     st.session_state["lp3_datasets"] = datasets
-    st.session_state["lp3_settings"] = dict(
-        title=title, show_ci=show_ci, selected_rps=selected_rps,
-    )
+    st.session_state["lp3_settings"] = dict(title=title, show_ci=show_ci)
 
 if "lp3_datasets" in st.session_state:
     datasets = st.session_state["lp3_datasets"]
@@ -144,7 +131,7 @@ if "lp3_datasets" in st.session_state:
         datasets,
         custom_title=settings["title"],
         show_ci=settings["show_ci"],
-        rp_list=settings["selected_rps"],
+        rp_list=RP_ALL,
     )
 
     st.pyplot(fig, use_container_width=True)
@@ -165,22 +152,7 @@ if "lp3_datasets" in st.session_state:
     for station_title, rows in summary.items():
         st.markdown(f"**{station_title}**")
         df_tbl = pd.DataFrame(rows)
-
-        def _rp_val(s):
-            try:
-                return float(str(s).replace("-yr", "").replace(",", ""))
-            except Exception:
-                return 0
-
-        def _highlight_extrapolated(row):
-            is_extrap = _rp_val(row["Return Period"]) > 100
-            return ["background-color: #fff8e1" if is_extrap else "" for _ in row]
-
-        st.dataframe(
-            df_tbl.style.apply(_highlight_extrapolated, axis=1),
-            use_container_width=True, hide_index=True,
-        )
-    st.caption("Rows with RP > 100-yr (highlighted) are extrapolations beyond the period of record.")
+        st.dataframe(df_tbl, use_container_width=True, hide_index=True)
 
     table_fig = build_table_figure(summary)
     table_svg_buf = BytesIO()
