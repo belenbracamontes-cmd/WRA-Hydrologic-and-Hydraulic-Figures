@@ -28,7 +28,7 @@ import pandas as pd
 import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from core.branding import logo_path_if_present, BRAND_DARK
+from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA
 from core.view_source import render_view_source
 from core.lp3_analysis import (
     fetch_usgs_peaks,
@@ -49,10 +49,10 @@ def cached_fetch_peaks(station_id):
 
 
 logo = logo_path_if_present()
-col_logo, col_title = st.columns([1, 6])
+col_logo, col_title = st.columns([2, 5])
 with col_logo:
     if logo:
-        st.image(str(logo), width=70)
+        st.image(str(logo), width=180)
 with col_title:
     st.markdown(
         f"<h1 style='color:{BRAND_DARK};margin-bottom:0'>Log-Pearson Type III Flood Frequency Analysis</h1>",
@@ -63,7 +63,7 @@ with col_title:
 with st.sidebar:
     st.header("Station")
     s1_id = st.text_input("Station ID", placeholder="e.g. 11113000", key="lp3_s1_id")
-    s1_color = st.color_picker("Color", "#c0392b", key="lp3_s1_color")
+    s1_color = st.color_picker("Color", TERRACOTA, key="lp3_s1_color")
     s1_label = st.text_input("Label (optional)", key="lp3_s1_label",
                               placeholder="Station name")
 

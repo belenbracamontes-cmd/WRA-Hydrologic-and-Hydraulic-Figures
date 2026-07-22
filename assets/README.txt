@@ -1,9 +1,8 @@
-Drop the WRA logo as "logo.png" in this folder.
+logo.png is the official WRA horizontal lockup (icon + wordmark + tagline),
+extracted from WRA_Brand_Guide_Revised_2026.pdf (page 18, "Primary Logo /
+Horizontal") with a transparent background. If you ever need to regenerate
+it -- e.g. a future brand refresh -- open the current brand guide PDF and
+re-crop the "Horizontal" lockup from the Identity section.
 
-If you have the logo saved anywhere already (a file on disk, or in the
-original notebook's image output), just copy it in as:
-
-    peak_flow_webapp/assets/logo.png
-
-If it's absent, the app still runs fine -- it just shows the text title
-without the logo image next to it.
+If this file is ever absent, the app still runs fine -- it just shows the
+text title without a logo image next to it.

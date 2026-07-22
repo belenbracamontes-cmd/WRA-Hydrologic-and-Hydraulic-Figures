@@ -21,8 +21,13 @@ import matplotlib.transforms as mtransforms
 from matplotlib import rcParams
 from matplotlib.colors import hex2color, to_hex
 
-rcParams["font.family"] = "Verdana"
-rcParams["font.sans-serif"] = ["Verdana"]
+from core.branding import BRAND_FONT_STACK
+
+# Archia (primary) -> Tenorite (secondary) -> Verdana (tertiary) -> generic,
+# per WRA_Brand_Guide_Revised_2026.pdf section 05. Individual fontfamily=
+# calls below use "sans-serif" so they all resolve through this same chain.
+rcParams["font.family"] = "sans-serif"
+rcParams["font.sans-serif"] = BRAND_FONT_STACK
 rcParams["axes.titlesize"] = 13
 rcParams["axes.labelsize"] = 11
 rcParams["xtick.labelsize"] = 8
@@ -265,7 +270,7 @@ def make_plot(datasets, use_log, break_val, custom_title="", axis_ratio=0.6):
                 xi = year_to_x[row["year"]]
                 ax_bot.text(xi + offset, 0.02, "*", ha="center", va="bottom",
                             fontsize=8, color=d["base_color"], fontweight="bold",
-                            fontfamily="Verdana", transform=blended)
+                            fontfamily="sans-serif", transform=blended)
 
     all_bot_items = []
     all_top_items = []
@@ -334,7 +339,7 @@ def make_plot(datasets, use_log, break_val, custom_title="", axis_ratio=0.6):
             ax.annotate(
                 lbl,
                 xy=(1.01, y_text), xycoords=("axes fraction", "data"),
-                fontsize=8, fontweight="bold", fontfamily="Verdana",
+                fontsize=8, fontweight="bold", fontfamily="sans-serif",
                 color=color, va="center", ha="left",
                 annotation_clip=False,
             )
@@ -359,16 +364,16 @@ def make_plot(datasets, use_log, break_val, custom_title="", axis_ratio=0.6):
     ax_bot.set_xticks(x_all)
     ax_bot.set_xticklabels([str(y) for y in all_years],
                            fontsize=7.5, rotation=90, ha="center",
-                           fontfamily="Verdana")
-    ax_bot.set_xlabel("Hydrological Year", fontsize=11, fontfamily="Verdana")
+                           fontfamily="sans-serif")
+    ax_bot.set_xlabel("Hydrological Year", fontsize=11, fontfamily="sans-serif")
     ax_bot.set_xlim(-0.8, len(all_years) - 0.2)
 
     title_str = (custom_title.strip() if custom_title.strip()
                  else "Annual Peak Flow — " +
                       " vs ".join(d["label"] or f"Station {d['station_id']}"
                                   for d in datasets))
-    ax_top.set_title(title_str, fontsize=13, fontweight="bold", fontfamily="Verdana")
-    fig.supylabel("Peak Discharge (cfs)", fontsize=11, fontfamily="Verdana", x=0.0)
+    ax_top.set_title(title_str, fontsize=13, fontweight="bold", fontfamily="sans-serif")
+    fig.supylabel("Peak Discharge (cfs)", fontsize=11, fontfamily="sans-serif", x=0.0)
 
     ax_top.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f"{int(y):,}"))
     ax_bot.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f"{int(y):,}"))
@@ -411,7 +416,7 @@ def make_plot(datasets, use_log, break_val, custom_title="", axis_ratio=0.6):
 
     fig.text(0.99, 0.01, "© WRA, Inc.",
               ha="right", va="bottom", fontsize=7,
-              fontfamily="Verdana", color="#888888")
+              fontfamily="sans-serif", color="#888888")
 
     fig.tight_layout()
     return fig

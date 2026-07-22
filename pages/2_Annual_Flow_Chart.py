@@ -23,7 +23,9 @@ import pandas as pd
 import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from core.branding import logo_path_if_present, BRAND_DARK
+from core.branding import (
+    logo_path_if_present, BRAND_DARK, FIELD_GREEN_SHADE, FIELD_GREEN_TINT,
+)
 from core.view_source import render_view_source
 from core.annual_flow_chart import (
     fetch_peak_flows,
@@ -56,10 +58,10 @@ def cached_fetch_name(site_no):
 
 
 logo = logo_path_if_present()
-col_logo, col_title = st.columns([1, 6])
+col_logo, col_title = st.columns([2, 5])
 with col_logo:
     if logo:
-        st.image(str(logo), width=70)
+        st.image(str(logo), width=180)
 with col_title:
     st.markdown(
         f"<h1 style='color:{BRAND_DARK};margin-bottom:0'>Annual Peak Flow & Average Flow Chart Generator</h1>",
@@ -77,12 +79,12 @@ with st.sidebar:
 
     st.divider()
     compare = st.checkbox("Compare a second station", key="afg_compare")
-    s2_id, s2_peak_color, s2_avg_color, s2_label = "", "#2E4F8A", "#A8D8F0", ""
+    s2_id, s2_peak_color, s2_avg_color, s2_label = "", FIELD_GREEN_SHADE, FIELD_GREEN_TINT, ""
     if compare:
         st.subheader("Station 2")
         s2_id = st.text_input("Station ID", placeholder="e.g. 11143000", key="afg_s2_id")
-        s2_peak_color = st.color_picker("Peak color", "#2E4F8A", key="afg_s2_peak_color")
-        s2_avg_color = st.color_picker("Avg color", "#A8D8F0", key="afg_s2_avg_color")
+        s2_peak_color = st.color_picker("Peak color", FIELD_GREEN_SHADE, key="afg_s2_peak_color")
+        s2_avg_color = st.color_picker("Avg color", FIELD_GREEN_TINT, key="afg_s2_avg_color")
         s2_label = st.text_input("Label (optional)", key="afg_s2_label",
                                   placeholder="Station 2 name")
 

@@ -18,7 +18,7 @@ import pandas as pd
 import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from core.branding import logo_path_if_present, BRAND_DARK
+from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA, OCEAN_BLUE
 from core.peak_flow import (
     fetch_data,
     compute_return_periods,
@@ -38,10 +38,10 @@ def cached_fetch_and_compute(station_id):
 
 
 logo = logo_path_if_present()
-col_logo, col_title = st.columns([1, 6])
+col_logo, col_title = st.columns([2, 5])
 with col_logo:
     if logo:
-        st.image(str(logo), width=70)
+        st.image(str(logo), width=180)
 with col_title:
     st.markdown(
         f"<h1 style='color:{BRAND_DARK};margin-bottom:0'>Annual Peak Flow Viewer</h1>",
@@ -52,17 +52,17 @@ with col_title:
 with st.sidebar:
     st.header("Station 1")
     s1_id = st.text_input("Station ID", placeholder="e.g. 11113000", key="s1_id")
-    s1_color = st.color_picker("Color", "#004ca3", key="s1_color")
+    s1_color = st.color_picker("Color", TERRACOTA, key="s1_color")
     s1_label = st.text_input("Label (optional)", key="s1_label",
                               placeholder="Station 1 name")
 
     st.divider()
     compare = st.checkbox("Compare a second station", key="compare")
-    s2_id, s2_color, s2_label = "", "#b83232", ""
+    s2_id, s2_color, s2_label = "", OCEAN_BLUE, ""
     if compare:
         st.subheader("Station 2")
         s2_id = st.text_input("Station ID", placeholder="e.g. 11109000", key="s2_id")
-        s2_color = st.color_picker("Color", "#b83232", key="s2_color")
+        s2_color = st.color_picker("Color", OCEAN_BLUE, key="s2_color")
         s2_label = st.text_input("Label (optional)", key="s2_label",
                                   placeholder="Station 2 name")
 

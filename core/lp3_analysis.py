@@ -28,8 +28,10 @@ import matplotlib.ticker as ticker
 from matplotlib import rcParams
 from scipy.stats import norm
 
-rcParams["font.family"]     = "Verdana"
-rcParams["font.sans-serif"] = ["Verdana"]
+from core.branding import BRAND_FONT_STACK
+
+rcParams["font.family"]     = "sans-serif"
+rcParams["font.sans-serif"] = BRAND_FONT_STACK
 rcParams["axes.titlesize"]  = 13
 rcParams["axes.labelsize"]  = 11
 rcParams["xtick.labelsize"] = 9
@@ -259,14 +261,14 @@ def make_lp3_plot(datasets, custom_title="", show_ci=True, rp_list=None):
     x_ticks = aep_to_normal(AEP_TICKS_PCT)
     ax.set_xticks(x_ticks)
     ax.set_xticklabels([str(v) for v in AEP_TICKS_PCT],
-                       fontsize=8.5, fontfamily="Verdana")
+                       fontsize=8.5, fontfamily="sans-serif")
     ax.set_xlim(aep_to_normal(99.5), aep_to_normal(0.1))
     ax.set_xlabel("Annual Exceedance Probability, in percent",
-                  fontsize=11, fontfamily="Verdana")
+                  fontsize=11, fontfamily="sans-serif")
 
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda y, _: f"{int(y):,}"))
     ax.yaxis.set_minor_formatter(ticker.NullFormatter())
-    ax.set_ylabel("Annual Peak Discharge (cfs)", fontsize=11, fontfamily="Verdana")
+    ax.set_ylabel("Annual Peak Discharge (cfs)", fontsize=11, fontfamily="sans-serif")
 
     ax2 = ax.twiny()
     rp_top = [1.01, 1.05, 1.11, 1.25, 2, 5, 10, 25, 50, 100, 200, 500, 1000]
@@ -277,8 +279,8 @@ def make_lp3_plot(datasets, custom_title="", show_ci=True, rp_list=None):
     ax2.set_xlim(ax.get_xlim())
     ax2.set_xticks(rp_x)
     ax2.set_xticklabels([str(r) if r >= 1 else f"{r:.2f}" for r in rp_top],
-                        fontsize=8, fontfamily="Verdana")
-    ax2.set_xlabel("Return Period (years)", fontsize=10, fontfamily="Verdana", labelpad=4)
+                        fontsize=8, fontfamily="sans-serif")
+    ax2.set_xlabel("Return Period (years)", fontsize=10, fontfamily="sans-serif", labelpad=4)
 
     ax.grid(True, which="both", linestyle=":", linewidth=0.5, alpha=0.6)
 
@@ -287,7 +289,7 @@ def make_lp3_plot(datasets, custom_title="", show_ci=True, rp_list=None):
                       " | ".join(d["label"] or f"Station {d['station_id']}"
                                  for d in datasets))
     ax.set_title(title_str, fontsize=13, fontweight="bold",
-                 fontfamily="Verdana", pad=28)
+                 fontfamily="sans-serif", pad=28)
 
     handles, labels_leg = ax.get_legend_handles_labels()
     seen, h2, l2 = set(), [], []
@@ -306,7 +308,7 @@ def make_lp3_plot(datasets, custom_title="", show_ci=True, rp_list=None):
         for d in datasets
     )
     fig.text(0.5, 0.01, meta, ha="center", va="bottom",
-             fontsize=8, fontfamily="Verdana", color="#555555")
+             fontsize=8, fontfamily="sans-serif", color="#555555")
 
     fig.tight_layout(rect=[0, 0.03, 1, 1])
     return fig, all_summary
@@ -364,10 +366,10 @@ def build_table_figure(summary):
             cell.set_edgecolor("#cccccc")
             cell.set_text_props(
                 fontweight="bold" if r == 0 else "normal",
-                fontfamily="Verdana",
+                fontfamily="sans-serif",
             )
         ax.set_title(station_title, fontsize=11, fontweight="bold",
-                     fontfamily="Verdana", pad=6, loc="left")
+                     fontfamily="sans-serif", pad=6, loc="left")
 
     fig.tight_layout(rect=[0, 0.025, 1, 1])
     return fig

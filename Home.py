@@ -22,10 +22,10 @@ st.set_page_config(
 )
 
 logo = logo_path_if_present()
-col_logo, col_title = st.columns([1, 6])
+col_logo, col_title = st.columns([2, 5])
 with col_logo:
     if logo:
-        st.image(str(logo), width=90)
+        st.image(str(logo), width=220)
 with col_title:
     st.markdown(
         f"<h1 style='color:{BRAND_DARK};margin-bottom:0'>WRA Hydrology Tools</h1>",

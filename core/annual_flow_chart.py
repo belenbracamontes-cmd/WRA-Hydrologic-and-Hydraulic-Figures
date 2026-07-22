@@ -18,16 +18,30 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib import rcParams
 
-WRA_NAVY      = "#003B5C"
-WRA_PEAK_BLUE = "#0071db"     # annual peak flow bars  (dark navy)
-WRA_AVG_CYAN  = "#5BC8F5"     # annual average flow bars (light cyan)
-WRA_GOLD      = "#C9A84C"     # annotation box border
-WRA_GOLD_FILL = "#FFF3CD"     # annotation box fill
-WRA_WHITE     = "#FFFFFF"
+from core.branding import (
+    BRAND_FONT_STACK,
+    TERRACOTA_SHADE,
+    CALIFORNIA_SUNSET,
+    OCEAN_BLUE_SHADE,
+    OCEAN_BLUE_TINT,
+    WARMER_CREAM,
+    NEUTRAL_BACKGROUND,
+)
+
+# Values below are real WRA brand colors (Brand Guide section 04), not
+# invented placeholders. Peak/avg use the Ocean Blue family (shade for the
+# dark "peak" series, tint for the light "average" series); the annotation
+# boxes use California Sunset on Warmer Cream.
+WRA_NAVY      = TERRACOTA_SHADE
+WRA_PEAK_BLUE = OCEAN_BLUE_SHADE  # annual peak flow bars  (dark navy-teal)
+WRA_AVG_CYAN  = OCEAN_BLUE_TINT   # annual average flow bars (light cyan)
+WRA_GOLD      = CALIFORNIA_SUNSET # annotation box border
+WRA_GOLD_FILL = WARMER_CREAM      # annotation box fill
+WRA_WHITE     = NEUTRAL_BACKGROUND
 WRA_GRID      = "#D0D0D0"
 
-rcParams["font.family"]     = "Verdana"
-rcParams["font.sans-serif"] = ["Verdana"]
+rcParams["font.family"]     = "sans-serif"
+rcParams["font.sans-serif"] = BRAND_FONT_STACK
 rcParams["axes.titlesize"]  = 13
 rcParams["axes.labelsize"]  = 11
 rcParams["xtick.labelsize"] = 9
@@ -270,7 +284,7 @@ def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organizati
 
     ax1.set_xticks(x)
     ax1.set_xticklabels([str(y) for y in all_years],
-                        rotation=90, fontsize=8, fontfamily="Verdana")
+                        rotation=90, fontsize=8, fontfamily="sans-serif")
     ax1.set_xlim(-0.6, n_years - 0.4)
     ax1.set_ylim(0, max(all_peak_vals, default=1) * 1.1)
     ax2.set_ylim(0, max(all_avg_vals, default=1) * 1.5 if all_avg_vals else 10)
@@ -280,9 +294,9 @@ def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organizati
     ax1.tick_params(axis="y", labelsize=8)
     ax2.tick_params(axis="y", labelsize=8)
 
-    ax1.set_ylabel("Annual Peak Flow (cfs)", fontsize=10, fontfamily="Verdana", labelpad=6)
-    ax2.set_ylabel("Annual Average Flow (cfs)", fontsize=10, fontfamily="Verdana", labelpad=6)
-    ax1.set_xlabel("Water Year", fontsize=10, fontfamily="Verdana", labelpad=6)
+    ax1.set_ylabel("Annual Peak Flow (cfs)", fontsize=10, fontfamily="sans-serif", labelpad=6)
+    ax2.set_ylabel("Annual Average Flow (cfs)", fontsize=10, fontfamily="sans-serif", labelpad=6)
+    ax1.set_xlabel("Water Year", fontsize=10, fontfamily="sans-serif", labelpad=6)
 
     ax1.grid(axis="y", color=WRA_GRID, linewidth=0.5, zorder=0)
     ax1.grid(axis="x", visible=False)
@@ -319,7 +333,7 @@ def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organizati
         transform=ax1.transAxes, fontsize=8, va="top", ha="left",
         bbox=dict(boxstyle="round,pad=0.5", facecolor=WRA_GOLD_FILL,
                   edgecolor=WRA_GOLD, linewidth=1.2),
-        fontfamily="Verdana", linespacing=1.5,
+        fontfamily="sans-serif", linespacing=1.5,
     )
 
     ax1.text(
@@ -327,7 +341,7 @@ def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organizati
         transform=ax1.transAxes, fontsize=8, va="top", ha="right",
         bbox=dict(boxstyle="round,pad=0.4", facecolor=WRA_GOLD_FILL,
                   edgecolor=WRA_GOLD, linewidth=1.2),
-        fontfamily="Verdana",
+        fontfamily="sans-serif",
     )
 
     h1, l1 = ax1.get_legend_handles_labels()
@@ -356,7 +370,7 @@ def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organizati
             f"Annual Peak Flow and Average Flow Summary Data\n"
             f"{ids_str} — {names_str}"
         )
-    fig.suptitle(title_str, fontsize=12, fontweight="bold", fontfamily="Verdana", y=0.99)
+    fig.suptitle(title_str, fontsize=12, fontweight="bold", fontfamily="sans-serif", y=0.99)
 
     last_year = all_years[-1] if all_years else "?"
     captions = []
@@ -373,10 +387,10 @@ def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organizati
         )
     fig.text(0.5, 0.005, "   |   ".join(captions),
              ha="center", va="bottom", fontsize=7.5,
-             fontfamily="Verdana", color="#444444", style="italic")
+             fontfamily="sans-serif", color="#444444", style="italic")
     fig.text(0.99, 0.005, f"© {_dt.date.today().year} {organization}",
              ha="right", va="bottom", fontsize=7,
-             fontfamily="Verdana", color="#888888")
+             fontfamily="sans-serif", color="#888888")
 
     fig.subplots_adjust(left=0.07, right=0.93, top=0.91, bottom=0.15)
     return fig
