@@ -21,7 +21,6 @@ Differences from the notebook version:
 
 import datetime as dt
 import sys
-from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
@@ -30,6 +29,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA
 from core.view_source import render_view_source
+from core.export import render_figure_download
 from core.lp3_analysis import (
     fetch_usgs_peaks,
     make_lp3_plot,
@@ -136,14 +136,7 @@ if "lp3_datasets" in st.session_state:
 
     st.pyplot(fig, use_container_width=True)
 
-    svg_buf = BytesIO()
-    fig.savefig(svg_buf, format="svg", bbox_inches="tight")
-    st.download_button(
-        "Download plot as SVG",
-        data=svg_buf.getvalue(),
-        file_name="lp3_flood_frequency.svg",
-        mime="image/svg+xml",
-    )
+    render_figure_download(fig, "lp3_flood_frequency", key_prefix="lp3_plot", label="Download plot")
 
     st.subheader("LP3 Parameters (Bulletin 17C / Wilson-Hilferty)")
     st.dataframe(lp3_params_table(datasets), use_container_width=True, hide_index=True)
@@ -155,13 +148,9 @@ if "lp3_datasets" in st.session_state:
         st.dataframe(df_tbl, use_container_width=True, hide_index=True)
 
     table_fig = build_table_figure(summary)
-    table_svg_buf = BytesIO()
-    table_fig.savefig(table_svg_buf, format="svg", bbox_inches="tight")
-    st.download_button(
-        "Download design-flow tables as SVG",
-        data=table_svg_buf.getvalue(),
-        file_name="lp3_design_flow_tables.svg",
-        mime="image/svg+xml",
+    render_figure_download(
+        table_fig, "lp3_design_flow_tables", key_prefix="lp3_table",
+        label="Download design-flow tables",
     )
 else:
     st.info("Enter a station ID in the sidebar and click **Run LP3** to get started.")

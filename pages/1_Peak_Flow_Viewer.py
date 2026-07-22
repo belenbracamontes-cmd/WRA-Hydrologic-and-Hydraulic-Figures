@@ -10,7 +10,6 @@ version:
 """
 
 import sys
-from io import BytesIO
 from pathlib import Path
 
 import numpy as np
@@ -28,6 +27,7 @@ from core.peak_flow import (
     full_record_table,
 )
 from core.view_source import render_view_source
+from core.export import render_figure_download
 
 st.set_page_config(page_title="Peak Flow Viewer", page_icon="📈", layout="wide")
 
@@ -128,14 +128,7 @@ if "pf_datasets" in st.session_state:
     )
     st.pyplot(fig, use_container_width=True)
 
-    svg_buf = BytesIO()
-    fig.savefig(svg_buf, format="svg", bbox_inches="tight")
-    st.download_button(
-        "Download chart as SVG",
-        data=svg_buf.getvalue(),
-        file_name="peak_flow_chart.svg",
-        mime="image/svg+xml",
-    )
+    render_figure_download(fig, "peak_flow_chart", key_prefix="pfv_chart")
 
     for d in datasets:
         name = d["label"] or f"Station {d['station_id']}"

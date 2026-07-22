@@ -16,7 +16,6 @@ Shorelines Team). Differences from the notebook version:
 
 import datetime as dt
 import sys
-from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
@@ -27,6 +26,7 @@ from core.branding import (
     logo_path_if_present, BRAND_DARK, FIELD_GREEN_SHADE, FIELD_GREEN_TINT,
 )
 from core.view_source import render_view_source
+from core.export import render_figure_download
 from core.annual_flow_chart import (
     fetch_peak_flows,
     fetch_annual_avg_flow,
@@ -175,14 +175,7 @@ if "afg_datasets" in st.session_state:
     )
     st.pyplot(fig, use_container_width=True)
 
-    svg_buf = BytesIO()
-    fig.savefig(svg_buf, format="svg", bbox_inches="tight")
-    st.download_button(
-        "Download chart as SVG",
-        data=svg_buf.getvalue(),
-        file_name="annual_flow_chart.svg",
-        mime="image/svg+xml",
-    )
+    render_figure_download(fig, "annual_flow_chart", key_prefix="afc_chart")
 
     st.subheader("Annual Flow Summary")
     st.dataframe(summary_table(datasets), use_container_width=True, hide_index=True)
