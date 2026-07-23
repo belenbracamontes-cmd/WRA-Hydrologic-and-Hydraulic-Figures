@@ -28,6 +28,7 @@ from core.peak_flow import (
 )
 from core.view_source import render_view_source
 from core.export import render_figure_download
+from core.style_options import restyle_annotations, ANNOTATION_PRESETS
 
 st.set_page_config(page_title="Peak Flow Viewer", page_icon="📈", layout="wide")
 
@@ -126,6 +127,21 @@ if "pf_datasets" in st.session_state:
         settings["title"],
         settings["axis_ratio"],
     )
+    st.pyplot(fig, use_container_width=True)
+
+    st.subheader("🎨 Presentation styling (optional)")
+    preset = st.selectbox(
+        "Annotation color (title, axis labels, ticks, borders, legend)",
+        list(ANNOTATION_PRESETS.keys()),
+        index=1,  # default: Black -- matches the plot's current look
+        key="pfv_annotation_preset",
+    )
+    station_color = datasets[0]["base_color"]
+    axis_specs = [
+        (fig.axes[0], ["x", "y"], station_color),
+        (fig.axes[1], ["x", "y"], station_color),
+    ]
+    restyle_annotations(fig, preset, axis_specs)
     st.pyplot(fig, use_container_width=True)
 
     render_figure_download(fig, "peak_flow_chart", key_prefix="pfv_chart")

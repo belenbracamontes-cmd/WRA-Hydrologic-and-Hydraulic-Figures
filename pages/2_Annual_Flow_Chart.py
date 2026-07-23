@@ -27,6 +27,7 @@ from core.branding import (
 )
 from core.view_source import render_view_source
 from core.export import render_figure_download
+from core.style_options import restyle_annotations, ANNOTATION_PRESETS
 from core.annual_flow_chart import (
     fetch_peak_flows,
     fetch_annual_avg_flow,
@@ -173,6 +174,27 @@ if "afg_datasets" in st.session_state:
         show_avg=True,
         organization=settings["org"] or "WRA, Inc.",
     )
+    st.pyplot(fig, use_container_width=True)
+
+    st.subheader("🎨 Presentation styling (optional)")
+    preset = st.selectbox(
+        "Annotation color (title, axis labels, ticks, borders, legend)",
+        list(ANNOTATION_PRESETS.keys()),
+        index=1,  # default: Black -- matches the plot's current look
+        key="afc_annotation_preset",
+    )
+    if len(datasets) > 1:
+        st.caption(
+            "Two stations are shown -- \"Match axis color to its data series\" "
+            "uses Station 1's peak/average colors for the left/right axes."
+        )
+    peak_color = datasets[0]["peak_color"]
+    avg_color = datasets[0]["avg_color"]
+    axis_specs = [
+        (fig.axes[0], ["x", "y"], peak_color),
+        (fig.axes[1], ["y"], avg_color),
+    ]
+    restyle_annotations(fig, preset, axis_specs)
     st.pyplot(fig, use_container_width=True)
 
     render_figure_download(fig, "annual_flow_chart", key_prefix="afc_chart")

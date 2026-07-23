@@ -30,6 +30,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA
 from core.view_source import render_view_source
 from core.export import render_figure_download
+from core.style_options import restyle_annotations, ANNOTATION_PRESETS
 from core.lp3_analysis import (
     fetch_usgs_peaks,
     make_lp3_plot,
@@ -134,6 +135,21 @@ if "lp3_datasets" in st.session_state:
         rp_list=RP_ALL,
     )
 
+    st.pyplot(fig, use_container_width=True)
+
+    st.subheader("🎨 Presentation styling (optional)")
+    preset = st.selectbox(
+        "Annotation color (title, axis labels, ticks, borders, legend)",
+        list(ANNOTATION_PRESETS.keys()),
+        index=1,  # default: Black -- matches the plot's current look
+        key="lp3_annotation_preset",
+    )
+    station_color = datasets[0]["color"]
+    axis_specs = [
+        (fig.axes[0], ["x", "y"], station_color),
+        (fig.axes[1], ["x"], station_color),
+    ]
+    restyle_annotations(fig, preset, axis_specs)
     st.pyplot(fig, use_container_width=True)
 
     render_figure_download(fig, "lp3_flood_frequency", key_prefix="lp3_plot", label="Download plot")

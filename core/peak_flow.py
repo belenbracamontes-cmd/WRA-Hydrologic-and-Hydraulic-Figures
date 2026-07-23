@@ -283,15 +283,20 @@ def make_plot(datasets, use_log, break_val, custom_title="", axis_ratio=0.6):
                 rp, d["df"]["return_period_yr"].iloc[::-1],
                 d["df"]["peak_va"].iloc[::-1]
             )
-        base_color = d["base_color"]
+        palette = build_palette(d["base_color"])
+        sorted_flows = [d_rp_flows[l] for l in d_rp_l]
+        line_colors = {
+            lbl: bar_color_for(d_rp_flows[lbl], sorted_flows, palette)
+            for lbl in d_rp_l
+        }
 
         for lbl in d_rp_l:
             flow = d_rp_flows[lbl]
             ax = ax_top if flow >= BREAK else ax_bot
-            ax.axhline(y=flow, color=base_color, linewidth=1.2, linestyle=":", alpha=0.85)
+            ax.axhline(y=flow, color=line_colors[lbl], linewidth=1.2, linestyle=":", alpha=0.85)
 
-        bot_items = [(d_rp_flows[l], l, base_color) for l in d_rp_l if d_rp_flows[l] < BREAK]
-        top_items = [(d_rp_flows[l], l, base_color) for l in d_rp_l if d_rp_flows[l] >= BREAK]
+        bot_items = [(d_rp_flows[l], l, line_colors[l]) for l in d_rp_l if d_rp_flows[l] < BREAK]
+        top_items = [(d_rp_flows[l], l, line_colors[l]) for l in d_rp_l if d_rp_flows[l] >= BREAK]
         all_bot_items.extend(bot_items)
         all_top_items.extend(top_items)
 
