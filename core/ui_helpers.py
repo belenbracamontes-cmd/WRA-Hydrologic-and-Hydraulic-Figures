@@ -1,0 +1,28 @@
+"""Small shared Streamlit UI widgets used across multiple tool pages."""
+
+import streamlit as st
+
+
+def toggle_button(label_off, label_on, key, default=False):
+    """A button that flips between two states each click (rather than a
+    checkbox), used for optional "add a second station" style toggles.
+
+    label_off -- shown when the toggle is currently OFF (click to turn on)
+    label_on  -- shown when the toggle is currently ON (click to turn off)
+    key       -- unique widget key; the on/off state itself is stored under
+                 f"{key}__on" in session_state so it survives reruns
+    default   -- initial state the first time this key is seen
+
+    Returns the current boolean state.
+    """
+    state_key = f"{key}__on"
+    if state_key not in st.session_state:
+        st.session_state[state_key] = default
+
+    enabled = st.session_state[state_key]
+    if st.button(label_on if enabled else label_off, key=key,
+                 type="primary" if enabled else "secondary"):
+        st.session_state[state_key] = not enabled
+        st.rerun()
+
+    return st.session_state[state_key]

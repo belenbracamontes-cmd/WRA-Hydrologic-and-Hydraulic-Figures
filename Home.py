@@ -50,6 +50,12 @@ st.markdown(
       analysis (Bulletin 17C, Wilson-Hilferty quantiles), producing a
       probability plot in USGS Peakfq / Figure 10-13 style with design-flow
       tables and confidence limits.
+    - **🌊 Daily Flow & Duration Analysis** — five related daily-flow tools
+      grouped into one page as tabs: historical daily flow range (min/max
+      band + mean), streamflow duration hydrographs by day-of-year
+      percentile (single station and combined two-station), and Weibull
+      flow-duration/exceedance analysis (single station with optional
+      overlay, and combined two-station with a recurring month/day window).
 
     More tools will show up here as they're added — each one lives as its
     own file in the `pages/` folder, so the sidebar navigation updates

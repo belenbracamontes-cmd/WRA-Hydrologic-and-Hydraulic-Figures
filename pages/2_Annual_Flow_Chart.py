@@ -28,6 +28,7 @@ from core.branding import (
 from core.view_source import render_view_source
 from core.export import render_figure_download
 from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.ui_helpers import toggle_button
 from core.annual_flow_chart import (
     fetch_peak_flows,
     fetch_annual_avg_flow,
@@ -79,7 +80,8 @@ with st.sidebar:
                               placeholder="e.g. San Francisquito Ck")
 
     st.divider()
-    compare = st.checkbox("Compare a second station", key="afg_compare")
+    compare = toggle_button("+ Compare a second station", "− Remove second station",
+                             key="afg_compare")
     s2_id, s2_peak_color, s2_avg_color, s2_label = "", FIELD_GREEN_SHADE, FIELD_GREEN_TINT, ""
     if compare:
         st.subheader("Station 2")
