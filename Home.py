@@ -1,19 +1,21 @@
-"""Landing page for the WRA Hydrology Tools web app.
+"""Entry point / sectioned sidebar navigation for the WRA Hydrology Tools
+web app.
 
 Run with:
     streamlit run Home.py
 
-Streamlit automatically turns every script in pages/ into a page reachable
-from the sidebar, so adding a new tool later just means dropping a new file
-in pages/ -- no other wiring needed.
+Uses st.navigation() with grouped sections so the sidebar shows labeled
+headers ("USGS station tools", "HEC RAS figures") instead of a flat page
+list. Tool pages live in app_pages/ rather than pages/ -- Streamlit
+unconditionally falls back to its legacy auto-discovery behavior (ignoring
+st.navigation entirely) whenever a folder literally named pages/ exists next
+to the entrypoint, regardless of what this script does.
+
+Only ONE st.set_page_config() call is allowed per run, so it lives here --
+individual page files must not call it themselves.
 """
 
 import streamlit as st
-
-from core.branding import logo_path_if_present, BRAND_DARK
-from core.view_source import render_view_source
-
-REPO_URL = "https://github.com/belenbracamontes-cmd/WRA-Hydrologic-and-Hydraulic-Figures"
 
 st.set_page_config(
     page_title="WRA Hydrology Tools",
@@ -21,56 +23,24 @@ st.set_page_config(
     layout="wide",
 )
 
-logo = logo_path_if_present()
-col_logo, col_title = st.columns([2, 5])
-with col_logo:
-    if logo:
-        st.image(str(logo), width=220)
-with col_title:
-    st.markdown(
-        f"<h1 style='color:{BRAND_DARK};margin-bottom:0'>WRA Hydrology Tools</h1>",
-        unsafe_allow_html=True,
-    )
-    st.caption("Internal team toolkit — pick a tool from the sidebar.")
+home_page = st.Page("app_pages/0_Home.py", title="Home", icon="💧", default=True, url_path="home")
 
-st.divider()
+peak_flow_page = st.Page("app_pages/1_Peak_Flow_Viewer.py", title="Peak Flow Viewer", icon="📈",
+                          url_path="peak-flow-viewer")
+annual_flow_page = st.Page("app_pages/2_Annual_Flow_Chart.py", title="Annual Flow Chart", icon="📊",
+                            url_path="annual-flow-chart")
+lp3_page = st.Page("app_pages/3_LP3_Flood_Frequency.py", title="LP3 Flood Frequency", icon="📉",
+                    url_path="lp3-flood-frequency")
+daily_flow_page = st.Page("app_pages/4_Daily_Flow_Duration_Analysis.py",
+                           title="Daily Flow & Duration Analysis", icon="🌊",
+                           url_path="daily-flow-duration-analysis")
 
-st.markdown(
-    """
-    ### Available tools
+hecras_1d_page = st.Page("app_pages/5_HEC_RAS_1D_Figures.py", title="1D Figures", icon="📐",
+                          url_path="hecras-1d-figures")
 
-    - **📈 Peak Flow Viewer** — annual peak-flow bar chart with return-period
-      bands, pulled live from USGS. Supports a single station or a
-      side-by-side two-station comparison.
-    - **📊 Annual Flow Chart** — dual-axis grouped bar chart of annual peak
-      flow and annual average flow (Balance Hydrologics "Figure 3" style),
-      pulled live from USGS. Supports a single station or a side-by-side
-      two-station comparison.
-    - **📉 LP3 Flood Frequency** — Log-Pearson Type III flood frequency
-      analysis (Bulletin 17C, Wilson-Hilferty quantiles), producing a
-      probability plot in USGS Peakfq / Figure 10-13 style with design-flow
-      tables and confidence limits.
-    - **🌊 Daily Flow & Duration Analysis** — five related daily-flow tools
-      grouped into one page as tabs: historical daily flow range (min/max
-      band + mean), streamflow duration hydrographs by day-of-year
-      percentile (single station and combined two-station), and Weibull
-      flow-duration/exceedance analysis (single station with optional
-      overlay, and combined two-station with a recurring month/day window).
-
-    More tools will show up here as they're added — each one lives as its
-    own file in the `pages/` folder, so the sidebar navigation updates
-    automatically.
-    """
-)
-
-st.divider()
-st.caption(
-    "Running this app: `streamlit run Home.py` from the `peak_flow_webapp` "
-    "folder. Share the resulting URL with the team, or deploy it to an "
-    "internal server / Streamlit Community Cloud so everyone gets a link "
-    "instead of running it locally."
-)
-st.caption(f"Full source code and history: [{REPO_URL}]({REPO_URL})")
-
-st.divider()
-render_view_source(__file__, label="View source code for this page")
+pg = st.navigation({
+    "": [home_page],
+    "USGS station tools": [peak_flow_page, annual_flow_page, lp3_page, daily_flow_page],
+    "HEC RAS figures": [hecras_1d_page],
+})
+pg.run()

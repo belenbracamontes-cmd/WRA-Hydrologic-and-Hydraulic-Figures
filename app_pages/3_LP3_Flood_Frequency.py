@@ -39,8 +39,6 @@ from core.lp3_analysis import (
     RP_ALL,
 )
 
-st.set_page_config(page_title="LP3 Flood Frequency", page_icon="📉", layout="wide")
-
 _CURRENT_YEAR = dt.date.today().year
 
 

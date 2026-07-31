@@ -39,8 +39,6 @@ from core.annual_flow_chart import (
     WRA_AVG_CYAN,
 )
 
-st.set_page_config(page_title="Annual Flow Chart", page_icon="📊", layout="wide")
-
 _CURRENT_YEAR = dt.date.today().year
 
 

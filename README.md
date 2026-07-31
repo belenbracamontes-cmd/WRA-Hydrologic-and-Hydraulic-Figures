@@ -10,9 +10,16 @@ Repo: https://github.com/belenbracamontes-cmd/WRA-Hydrologic-and-Hydraulic-Figur
 
 ```
 peak_flow_webapp/
-  Home.py                     # landing page (run this to start the app)
-  pages/                      # one file per tool -- Streamlit auto-builds
-                               # the sidebar nav from whatever's in here
+  Home.py                     # entrypoint -- st.set_page_config + the
+                               # sectioned st.navigation() router (registers
+                               # every page below under a labeled section)
+  app_pages/                  # one file per tool. NOT named "pages" --
+                               # Streamlit unconditionally falls back to its
+                               # legacy auto-discovery (ignoring
+                               # st.navigation entirely) whenever a folder
+                               # literally named pages/ exists next to the
+                               # entrypoint, regardless of what Home.py does
+    0_Home.py                  # landing page content
     1_Peak_Flow_Viewer.py
   core/                       # shared logic, kept separate from UI code
     peak_flow.py              # Peak Flow Viewer's data/plotting logic
@@ -40,22 +47,23 @@ server or Streamlit Community Cloud so people get a shared link instead.
 
 ## Adding a new tool page
 
-1. Copy the template into `pages/` with a name like `N_Display_Name.py`:
+1. Copy the template into `app_pages/`:
    ```
-   cp templates/new_page_template.py "pages/2_My_New_Tool.py"
+   cp templates/new_page_template.py "app_pages/my_new_tool.py"
    ```
-   The leading number sets sidebar order; underscores render as spaces
-   (`2_My_New_Tool.py` → "My New Tool" in the sidebar). No other wiring is
-   needed -- Streamlit picks up any `.py` file in `pages/` automatically.
 
 2. If the tool has real logic (data fetching, math, plotting), put it in
    its own module under `core/` (e.g. `core/my_new_tool.py`), mirroring how
    `core/peak_flow.py` holds all of the Peak Flow Viewer's logic. Keep the
    page file itself a thin UI layer -- sidebar inputs, a "Run" button, and
    calls into `core/`. This keeps the logic testable/reusable outside
-   Streamlit and keeps `pages/` easy to read.
+   Streamlit and keeps `app_pages/` easy to read.
 
-3. Fill in the `TODO`s in the copied template, then run the app locally
+3. Register the page in `Home.py`: add an `st.Page(...)` entry (title,
+   icon, unique `url_path`) and add it to a section in the
+   `st.navigation({...})` dict.
+
+4. Fill in the `TODO`s in the copied template, then run the app locally
    (`streamlit run Home.py`) and check the new page in the sidebar.
 
 4. Commit and push (see below).

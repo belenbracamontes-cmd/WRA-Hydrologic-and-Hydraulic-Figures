@@ -31,8 +31,6 @@ from core.export import render_figure_download
 from core.style_options import restyle_annotations, ANNOTATION_PRESETS
 from core.ui_helpers import toggle_button
 
-st.set_page_config(page_title="Peak Flow Viewer", page_icon="📈", layout="wide")
-
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def cached_fetch_and_compute(station_id):

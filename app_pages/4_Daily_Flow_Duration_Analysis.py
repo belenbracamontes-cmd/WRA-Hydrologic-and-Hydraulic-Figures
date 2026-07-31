@@ -37,8 +37,6 @@ from core import duration_hydrograph_combined as dh2
 from core import weibull_flow_duration as wfd
 from core import weibull_flow_duration_combined as wfc
 
-st.set_page_config(page_title="Daily Flow & Duration Analysis", page_icon="🌊", layout="wide")
-
 _CURRENT_YEAR = dt.date.today().year
 _MONTH_ABBRS = [calendar.month_abbr[m] for m in range(1, 13)]
 _MONTH_ABBR_TO_NUM = {calendar.month_abbr[m]: m for m in range(1, 13)}

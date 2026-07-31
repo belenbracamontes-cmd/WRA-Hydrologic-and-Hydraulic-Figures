@@ -1,29 +1,33 @@
-"""TEMPLATE -- copy this file into pages/ to add a new tool.
+"""TEMPLATE -- copy this file into app_pages/ to add a new tool.
 
-Do NOT leave this file inside pages/ itself -- Streamlit turns every .py
-file directly under pages/ into a sidebar page, so this template lives here
-in templates/ where it's inert, and gets copied+renamed when you actually
-use it.
+Do NOT leave this file inside app_pages/ itself -- it's inert here in
+templates/, and gets copied+renamed when you actually use it. IMPORTANT:
+the folder must be named app_pages/, not pages/ -- Streamlit unconditionally
+falls back to its legacy auto-discovery behavior (ignoring the sectioned
+st.navigation() router in Home.py entirely) whenever a folder literally
+named pages/ exists next to the entrypoint.
 
 HOW TO USE THIS TEMPLATE
 -------------------------
-1. Copy it into pages/, with a name of the form "N_Display_Name.py":
-     cp templates/new_page_template.py "pages/2_My_New_Tool.py"
-   The leading number controls sidebar order; underscores become spaces in
-   the sidebar label ("2_My_New_Tool.py" -> "My New Tool").
+1. Copy it into app_pages/, with a descriptive name:
+     cp templates/new_page_template.py "app_pages/my_new_tool.py"
 
 2. If your tool has real data-fetching / math / plotting logic (like
    core/peak_flow.py does for the Peak Flow Viewer), put THAT in its own
    module under core/, e.g. core/my_new_tool.py. Keep this page file as a
    thin UI layer that imports from core/ -- it makes the logic testable
-   and reusable outside Streamlit, and keeps pages/ readable.
+   and reusable outside Streamlit, and keeps app_pages/ readable.
 
-3. Replace every "TODO" below, delete this docstring's instructions (keep
+3. Register the new page in Home.py: add an st.Page(...) entry (with a
+   title, icon, and unique url_path) and add it to the appropriate section
+   in the st.navigation({...}) dict (or add a new section).
+
+4. Replace every "TODO" below, delete this docstring's instructions (keep
    a short one describing the actual tool), and run the app locally to
    check it shows up correctly:
      streamlit run Home.py
 
-4. Commit and push (see README.md for the git workflow).
+5. Commit and push (see README.md for the git workflow).
 """
 
 import sys
@@ -39,7 +43,9 @@ from core.view_source import render_view_source
 # TODO: import your tool's own logic module, e.g.:
 # from core.my_new_tool import fetch_data, compute_something, make_plot
 
-st.set_page_config(page_title="TODO: Tool Name", page_icon="🧰", layout="wide")
+# NOTE: do NOT call st.set_page_config() here -- Home.py calls it once for
+# the whole app. Set this page's title/icon via its st.Page(...) entry in
+# Home.py instead.
 
 # ── Header (logo + title) -- same pattern on every page for consistency ──────
 logo = logo_path_if_present()
