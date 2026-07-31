@@ -125,42 +125,48 @@ def get_title_from_first_row(file_obj, sheet_name):
 
 
 # ── Plot ──────────────────────────────────────────────────────────────────
-def make_plot(df_raw, station_idx, series_specs, custom_title=""):
+def make_plot(df_raw, scenario_specs, custom_title=""):
     """Build the cross-section plot.
 
-    df_raw        -- the loaded sheet (header row already applied)
-    station_idx   -- column index used for the x-axis (Station)
-    series_specs  -- list of dicts, one per plotted line:
-                     {"stype": one of SERIES_TYPES, "col_idx": int,
-                      "color_hex": str, "line_style": matplotlib linestyle,
-                      "label": str}
+    df_raw          -- the loaded sheet (header row already applied)
+    scenario_specs  -- list of dicts, one per scenario, since station columns
+                       aren't guaranteed to line up the same way across
+                       scenarios:
+                       {"station_idx": int,
+                        "series": [{"stype": one of SERIES_TYPES,
+                                    "col_idx": int, "color_hex": str,
+                                    "line_style": matplotlib linestyle,
+                                    "label": str}, ...]}
     Returns the matplotlib Figure (does not call plt.show()).
     """
-    df = df_raw[pd.to_numeric(df_raw.iloc[:, station_idx], errors="coerce").notna()].copy()
-    df.iloc[:, station_idx] = df.iloc[:, station_idx].astype(float)
-    df = df.sort_values(df.columns[station_idx])
-    x = df.iloc[:, station_idx]
-
-    def col_data(idx):
-        return pd.to_numeric(df.iloc[:, idx], errors="coerce")
-
-    has_vel = any(s["stype"] in VEL_TYPES for s in series_specs)
-    has_elev = any(s["stype"] in ELEV_TYPES for s in series_specs)
+    all_series = [s for sc in scenario_specs for s in sc["series"]]
+    has_vel = any(s["stype"] in VEL_TYPES for s in all_series)
+    has_elev = any(s["stype"] in ELEV_TYPES for s in all_series)
     dual = has_vel and has_elev
 
     fig, ax1 = plt.subplots(figsize=(11, 7))
     ax2 = ax1.twinx() if dual else None
 
     lines, lbls = [], []
-    for spec in series_specs:
-        ax = ax1 if spec["stype"] in VEL_TYPES else (ax2 if dual else ax1)
-        ln, = ax.plot(
-            x, col_data(spec["col_idx"]),
-            color=spec["color_hex"], linestyle=spec["line_style"],
-            linewidth=1.8, label=spec["label"],
-        )
-        lines.append(ln)
-        lbls.append(spec["label"])
+    for sc in scenario_specs:
+        station_idx = sc["station_idx"]
+        df = df_raw[pd.to_numeric(df_raw.iloc[:, station_idx], errors="coerce").notna()].copy()
+        df.iloc[:, station_idx] = df.iloc[:, station_idx].astype(float)
+        df = df.sort_values(df.columns[station_idx])
+        x = df.iloc[:, station_idx]
+
+        def col_data(idx, df=df):
+            return pd.to_numeric(df.iloc[:, idx], errors="coerce")
+
+        for spec in sc["series"]:
+            ax = ax1 if spec["stype"] in VEL_TYPES else (ax2 if dual else ax1)
+            ln, = ax.plot(
+                x, col_data(spec["col_idx"]),
+                color=spec["color_hex"], linestyle=spec["line_style"],
+                linewidth=1.8, label=spec["label"],
+            )
+            lines.append(ln)
+            lbls.append(spec["label"])
 
     ax1.set_xlabel(XLABEL, fontsize=11)
     if has_vel and not has_elev:

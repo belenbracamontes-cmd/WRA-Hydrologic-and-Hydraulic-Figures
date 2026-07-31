@@ -47,8 +47,8 @@ with col_title:
         f"<h1 style='color:{BRAND_DARK};margin-bottom:0'>HEC-RAS 1D Cross Section Plotter</h1>",
         unsafe_allow_html=True,
     )
-    st.caption("Upload an Excel sheet of 1D model results, pick a Station column, and plot any "
-               "number of Velocity/WSE/Profile/Elevation scenarios against it.")
+    st.caption("Upload an Excel sheet of 1D model results and plot any number of "
+               "Velocity/WSE/Profile/Elevation scenarios, each with its own Station column.")
 
 st.subheader("1. File")
 uploaded_file = st.file_uploader("Upload Excel file", type=["xlsx", "xls"], key="hec_upload")
@@ -87,11 +87,9 @@ if "hec_df_raw" in st.session_state:
                 return label
         return str(idx)
 
-    st.subheader("2. Station column & series types")
-    station_idx = st.selectbox("Station column", [i for _, i in col_opts],
-                                format_func=col_label, key="hec_station_col")
-
-    st.caption("Check all series types that apply -- column pickers will appear below for each.")
+    st.subheader("2. What to plot")
+    st.caption("Check all series types that apply -- each scenario below will get a column picker "
+               "for every type checked here.")
     cbs = st.columns(len(SERIES_TYPES))
     active_types = {}
     for c, stype in zip(cbs, SERIES_TYPES):
@@ -103,35 +101,46 @@ if "hec_df_raw" in st.session_state:
 
     active_list = [s for s in SERIES_TYPES if active_types[s]]
 
-    st.subheader("3. Assign columns, colors & line styles")
+    st.subheader("3. Configure each scenario")
     if not active_list:
-        st.info("Check at least one series type above to configure column pickers.")
+        st.info("Check at least one series type above to configure scenarios.")
     else:
-        for stype in active_list:
-            st.markdown(f"**{SERIES_ICONS[stype]} {stype}**")
-            for i in range(n_scenarios):
-                c1, c2, c3 = st.columns([3, 1, 1.5])
-                default_col = default_scenario_column(col_opts, i)
-                default_color_name = default_scenario_color(i)
-                default_style_name = default_scenario_style(i)
-                with c1:
-                    st.selectbox(f"Scenario {i + 1} column", [idx for _, idx in col_opts],
-                                 index=[idx for _, idx in col_opts].index(default_col) if default_col is not None else 0,
-                                 format_func=col_label, key=f"hec_col_{stype}_{i}")
-                with c2:
-                    st.color_picker("Color", WRA_COLORS[default_color_name], key=f"hec_color_{stype}_{i}")
-                with c3:
-                    st.selectbox("Line style", LINE_STYLE_NAMES,
-                                 index=LINE_STYLE_NAMES.index(default_style_name),
-                                 key=f"hec_style_{stype}_{i}")
-            st.divider()
-
-        st.markdown("**🏷️ Legend labels** (leave blank to use the column name from Excel)")
+        st.caption("Station columns don't have to match across scenarios -- pick whichever column "
+                   "is correct for each one.")
         legend_names = []
         for i in range(n_scenarios):
-            legend_names.append(
-                st.text_input(f"Scenario {i + 1} label", key=f"hec_label_{i}", placeholder="auto (column name)")
-            )
+            with st.container(border=True):
+                st.markdown(f"**Scenario {i + 1}**")
+
+                station_default = col_opts[0][1] if col_opts else None
+                station_index = ([idx for _, idx in col_opts].index(station_default)
+                                  if station_default is not None else 0)
+                st.selectbox(f"Station column (Scenario {i + 1})", [idx for _, idx in col_opts],
+                             index=station_index, format_func=col_label, key=f"hec_station_{i}")
+
+                for stype in active_list:
+                    st.markdown(f"{SERIES_ICONS[stype]} {stype}")
+                    c1, c2, c3 = st.columns([3, 1, 1.5])
+                    default_col = default_scenario_column(col_opts, i)
+                    default_color_name = default_scenario_color(i)
+                    default_style_name = default_scenario_style(i)
+                    with c1:
+                        st.selectbox(f"{stype} column", [idx for _, idx in col_opts],
+                                     index=[idx for _, idx in col_opts].index(default_col) if default_col is not None else 0,
+                                     format_func=col_label, key=f"hec_col_{stype}_{i}",
+                                     label_visibility="collapsed")
+                    with c2:
+                        st.color_picker("Color", WRA_COLORS[default_color_name], key=f"hec_color_{stype}_{i}",
+                                         label_visibility="collapsed")
+                    with c3:
+                        st.selectbox("Line style", LINE_STYLE_NAMES,
+                                     index=LINE_STYLE_NAMES.index(default_style_name),
+                                     key=f"hec_style_{stype}_{i}", label_visibility="collapsed")
+
+                legend_names.append(
+                    st.text_input(f"Legend label (Scenario {i + 1})", key=f"hec_label_{i}",
+                                   placeholder="auto (column name)")
+                )
 
     st.subheader("4. Title & generate")
     title = st.text_input("Plot title (optional)", key="hec_title",
@@ -142,22 +151,27 @@ if "hec_df_raw" in st.session_state:
             st.error("Check at least one series type first.")
             st.stop()
         try:
-            series_specs = []
-            for stype in active_list:
-                for i in range(n_scenarios):
+            scenario_specs = []
+            for i in range(n_scenarios):
+                series = []
+                for stype in active_list:
                     col_idx = st.session_state[f"hec_col_{stype}_{i}"]
                     color_hex = st.session_state[f"hec_color_{stype}_{i}"]
                     style_name = st.session_state[f"hec_style_{stype}_{i}"]
                     label = legend_names[i].strip() if legend_names[i].strip() else col_label(col_idx)
-                    series_specs.append({
+                    series.append({
                         "stype": stype, "col_idx": col_idx, "color_hex": color_hex,
                         "line_style": LINE_STYLES[style_name], "label": label,
                     })
+                scenario_specs.append({
+                    "station_idx": st.session_state[f"hec_station_{i}"],
+                    "series": series,
+                })
 
             final_title = title.strip() or st.session_state.get("hec_auto_title", "") or "Cross Section Plot"
 
             st.session_state["hec_result"] = dict(
-                station_idx=station_idx, series_specs=series_specs, title=final_title,
+                scenario_specs=scenario_specs, title=final_title,
             )
         except Exception as e:
             st.error(f"Error building plot: {e}")
@@ -165,7 +179,7 @@ if "hec_df_raw" in st.session_state:
 
     if "hec_result" in st.session_state:
         r = st.session_state["hec_result"]
-        fig = make_plot(df_raw, r["station_idx"], r["series_specs"], r["title"])
+        fig = make_plot(df_raw, r["scenario_specs"], r["title"])
         st.pyplot(fig, use_container_width=True)
 
         st.subheader("🎨 Presentation styling (optional)")
@@ -173,16 +187,17 @@ if "hec_df_raw" in st.session_state:
             "Annotation color (title, axis labels, ticks, borders, legend)",
             list(ANNOTATION_PRESETS.keys()), index=1, key="hec_annotation_preset",
         )
+        all_series = [s for sc in r["scenario_specs"] for s in sc["series"]]
         dual = len(fig.axes) > 1
         if dual:
-            vel_colors = [s["color_hex"] for s in r["series_specs"] if s["stype"] in VEL_TYPES]
-            elev_colors = [s["color_hex"] for s in r["series_specs"] if s["stype"] in ELEV_TYPES]
+            vel_colors = [s["color_hex"] for s in all_series if s["stype"] in VEL_TYPES]
+            elev_colors = [s["color_hex"] for s in all_series if s["stype"] in ELEV_TYPES]
             axis_specs = [
                 (fig.axes[0], ["x", "y"], vel_colors[0] if vel_colors else None),
                 (fig.axes[1], ["y"], elev_colors[0] if elev_colors else None),
             ]
         else:
-            first_color = r["series_specs"][0]["color_hex"] if r["series_specs"] else None
+            first_color = all_series[0]["color_hex"] if all_series else None
             axis_specs = [(fig.axes[0], ["x", "y"], first_color)]
         restyle_annotations(fig, preset, axis_specs)
         st.pyplot(fig, use_container_width=True)
