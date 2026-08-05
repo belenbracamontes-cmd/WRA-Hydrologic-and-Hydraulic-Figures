@@ -16,11 +16,14 @@ server-side) takes roughly a minute since it's ~56 sequential state/
 territory requests; every load after that is served from cache until it
 expires (24h) or the server restarts.
 
-"Find a station" lets you check stations from the search results table and
-add them to a running selection, each with its own color (default
-terracotta). Selected stations render as larger highlighted points on the
-map; a "Zoom" button per station recenters the map on it, and an "only show
-selected" toggle can hide the full nationwide cloud entirely.
+An optional "Filter by state / city" step narrows the list before "Find a
+station" (city matches against the station name, since NWIS doesn't expose
+a separate city field for streamgages). Each matching station gets a single
+"Add" button -- one click adds it straight to the map and the running
+selection below, no separate confirm step. Selected stations render as
+larger highlighted points on the map, each with its own color (default
+terracotta); a "Zoom" button per station recenters the map on it, and an
+"only show selected" toggle can hide the full nationwide cloud entirely.
 
 A Standard/Satellite/Terrain map-type switcher was attempted (Esri's free
 World Imagery/Topo tiles, since Google's terms of service don't allow
@@ -35,13 +38,14 @@ single reliable "Standard" map ships for now.
 import sys
 from pathlib import Path
 
+import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA, TERRACOTA_SHADE
 from core.view_source import render_view_source
-from core.usgs_station_map import fetch_all_active_streamgages, hex_to_rgba
+from core.usgs_station_map import fetch_all_active_streamgages, hex_to_rgba, STATE_NAMES
 
 logo = logo_path_if_present()
 col_logo, col_title = st.columns([2, 5])
@@ -64,9 +68,9 @@ st.markdown(
     System (NWIS), the same public API every tool on this site pulls from when you type in a
     station ID.
 
-    Hover any point on the map below to see a station's name and site number, or use the search
-    box underneath to check off stations and add them to the map in their own color. For deeper
-    station-by-station exploration, USGS's own
+    Hover any point on the map below to see a station's name and site number, or use the state/
+    city/search filters underneath to find and add stations to the map in their own color. For
+    deeper station-by-station exploration, USGS's own
     [National Water Dashboard](https://dashboard.waterdata.usgs.gov/) and
     [NWIS Mapper](https://maps.waterdata.usgs.gov/mapper/) offer the same kind of view this page
     does, with more detail once you've found a site you care about.
@@ -186,63 +190,60 @@ map_key = (f"usgs_map_{round(view['lat'], 4)}_{round(view['lon'], 4)}_{view['zoo
 st.pydeck_chart(deck, use_container_width=True, height=600, key=map_key)
 
 st.divider()
+st.subheader("Filter by state / city (optional)")
+state_options = ["All states"] + [
+    STATE_NAMES.get(abbr, abbr)
+    for abbr in sorted(all_sites["state_abbr"].dropna().unique(), key=lambda a: STATE_NAMES.get(a, a))
+]
+name_to_abbr = {name: abbr for abbr, name in STATE_NAMES.items()}
+
+c1, c2 = st.columns(2)
+with c1:
+    state_choice = st.selectbox("State", state_options, key="usgs_state_filter")
+with c2:
+    city_query = st.text_input("City", key="usgs_city_filter",
+                                placeholder="e.g. Fillmore (matches the station name)")
+
+filtered = all_sites
+if state_choice != "All states":
+    filtered = filtered[filtered["state_abbr"] == name_to_abbr[state_choice]]
+if city_query.strip():
+    filtered = filtered[filtered["station_nm"].str.contains(city_query.strip(), case=False, na=False)]
+
+st.divider()
 st.subheader("Find a station")
 query = st.text_input("Search by station name or site number", key="usgs_search",
                        placeholder="e.g. Russian River, or 11463500")
 
 if query.strip():
     q = query.strip().lower()
-    filtered = all_sites[
-        all_sites["station_nm"].str.lower().str.contains(q, na=False)
-        | all_sites["site_no"].str.contains(q, na=False)
+    filtered = filtered[
+        filtered["station_nm"].str.lower().str.contains(q, na=False)
+        | filtered["site_no"].str.contains(q, na=False)
     ]
+
+MAX_LISTED = 50
+st.caption(f"{len(filtered):,} of {len(all_sites):,} stations match your filters.")
+
+if len(filtered) == 0:
+    st.info("No stations match -- try loosening the state/city/search filters above.")
+elif len(filtered) > MAX_LISTED:
+    st.info(f"That's {len(filtered):,} stations -- narrow with the State/City filters or the search box "
+             f"above to list them here (up to {MAX_LISTED} at a time).")
 else:
-    filtered = all_sites
-
-st.caption(f"{len(filtered):,} of {len(all_sites):,} stations shown -- check a row and click "
-           "\"Add checked stations to map\" to add it to your selection below.")
-
-display_df = filtered[["site_no", "station_nm", "dec_lat_va", "dec_long_va", "drain_area_va", "huc_cd"]].copy()
-display_df.insert(0, "Add", display_df["site_no"].isin(selected_site_nos))
-display_df = display_df.rename(columns={
-    "site_no": "Site No", "station_nm": "Station Name",
-    "dec_lat_va": "Latitude", "dec_long_va": "Longitude",
-    "drain_area_va": "Drainage Area (sq mi)", "huc_cd": "HUC Code",
-})
-
-edited = st.data_editor(
-    display_df,
-    column_config={"Add": st.column_config.CheckboxColumn(help="Check to add this station to the map")},
-    disabled=[c for c in display_df.columns if c != "Add"],
-    hide_index=True, use_container_width=True, height=350, key="usgs_search_editor",
-)
-
-if st.button("➕ Add checked stations to map", key="usgs_add_checked"):
-    newly_checked = edited[edited["Add"]]["Site No"].tolist()
-    added = 0
-    for site_no in newly_checked:
-        if site_no not in selected_site_nos:
-            selected_site_nos.append(site_no)
-            added += 1
-    if added:
-        st.success(f"Added {added} station(s) to the map.")
-        st.rerun()
-    else:
-        st.info("Nothing new to add -- those stations are already selected.")
-
-# A narrowed search (e.g. an exact site number) gets quick one-click "Add"
-# buttons too, for the common case of adding a single known station without
-# needing to find its checkbox in a big table.
-if 0 < len(filtered) <= 15:
-    st.caption("Quick add:")
     for _, row in filtered.iterrows():
         site_no = row["site_no"]
-        qc1, qc2 = st.columns([5, 1])
-        with qc1:
-            st.write(f"{row['station_nm']} ({site_no})")
-        with qc2:
+        rc1, rc2, rc3 = st.columns([4, 3, 1.2])
+        with rc1:
+            st.write(f"**{row['station_nm']}**  \n{site_no}")
+        with rc2:
+            area = f"{row['drain_area_va']:,.1f} sq mi" if pd.notna(row["drain_area_va"]) else "—"
+            st.caption(f"HUC {row['huc_cd']} · Drainage area: {area}")
+        with rc3:
             already = site_no in selected_site_nos
-            if st.button("Added ✓" if already else "➕ Add", key=f"usgs_quickadd_{site_no}",
+            # A single click adds the station straight to the map/selection
+            # below -- no separate "confirm" step needed.
+            if st.button("Added ✓" if already else "➕ Add", key=f"usgs_add_{site_no}",
                          disabled=already):
                 selected_site_nos.append(site_no)
                 st.rerun()
@@ -250,7 +251,7 @@ if 0 < len(filtered) <= 15:
 st.divider()
 st.subheader(f"🎯 Selected stations ({len(selected_site_nos)})")
 if not selected_site_nos:
-    st.info("No stations selected yet. Check some off in the search results above.")
+    st.info("No stations selected yet. Click \"Add\" on a station above to get started.")
 else:
     if st.button("Clear all", key="usgs_clear_all"):
         st.session_state["usgs_selected"] = []

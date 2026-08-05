@@ -27,6 +27,24 @@ STATE_CODES = [
     "WV", "WI", "WY", "PR", "VI", "GU", "AS", "MP",
 ]
 
+STATE_NAMES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "DC": "District of Columbia", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii",
+    "ID": "Idaho", "IL": "Illinois", "IN": "Indiana", "IA": "Iowa",
+    "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine",
+    "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
+    "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska",
+    "NV": "Nevada", "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico",
+    "NY": "New York", "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio",
+    "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island",
+    "SC": "South Carolina", "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas",
+    "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington",
+    "WV": "West Virginia", "WI": "Wisconsin", "WY": "Wyoming",
+    "PR": "Puerto Rico", "VI": "U.S. Virgin Islands", "GU": "Guam",
+    "AS": "American Samoa", "MP": "Northern Mariana Islands",
+}
+
 SITE_COLUMNS = ["site_no", "station_nm", "dec_lat_va", "dec_long_va",
                  "huc_cd", "drain_area_va", "state_cd"]
 
@@ -54,18 +72,23 @@ def fetch_state_streamgages(state_cd):
 
     lines = [l for l in r.text.splitlines() if not l.startswith("#") and l.strip()]
     if len(lines) < 3:
-        return pd.DataFrame(columns=SITE_COLUMNS)
+        return pd.DataFrame(columns=SITE_COLUMNS + ["state_abbr"])
 
     header = lines[0].split("\t")
     rows = [l.split("\t") for l in lines[2:] if l.strip()]
     if not rows:
-        return pd.DataFrame(columns=SITE_COLUMNS)
+        return pd.DataFrame(columns=SITE_COLUMNS + ["state_abbr"])
 
     df = pd.DataFrame(rows, columns=header[: len(rows[0])])
     for col in SITE_COLUMNS:
         if col not in df.columns:
             df[col] = None
-    return df[SITE_COLUMNS]
+    df = df[SITE_COLUMNS].copy()
+    # Tag every row with the 2-letter code we actually queried for, rather
+    # than decoding the numeric FIPS state_cd NWIS returns -- simpler and
+    # matches the STATE_CODES/STATE_NAMES abbreviations used everywhere else.
+    df["state_abbr"] = state_cd
+    return df
 
 
 def fetch_all_active_streamgages(progress_callback=None):
