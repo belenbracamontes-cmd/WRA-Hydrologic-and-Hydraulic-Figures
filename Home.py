@@ -25,6 +25,9 @@ st.set_page_config(
 
 home_page = st.Page("app_pages/0_Home.py", title="Home", icon="💧", default=True, url_path="home")
 
+usgs_intro_page = st.Page("app_pages/7_Intro_to_USGS.py", title="Intro to USGS", icon="🗺️",
+                           url_path="intro-to-usgs")
+
 peak_flow_page = st.Page("app_pages/1_Peak_Flow_Viewer.py", title="Peak Flow Viewer", icon="📈",
                           url_path="peak-flow-viewer")
 annual_flow_page = st.Page("app_pages/2_Annual_Flow_Chart.py", title="Annual Flow Chart", icon="📊",
@@ -42,7 +45,7 @@ hecras_2d_page = st.Page("app_pages/6_HEC_RAS_2D_Figures.py", title="2D Figures"
 
 pg = st.navigation({
     "": [home_page],
-    "USGS station tools": [peak_flow_page, annual_flow_page, lp3_page, daily_flow_page],
+    "USGS station tools": [usgs_intro_page, peak_flow_page, annual_flow_page, lp3_page, daily_flow_page],
     "HEC RAS figures": [hecras_1d_page, hecras_2d_page],
 })
 pg.run()

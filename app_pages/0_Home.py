@@ -31,6 +31,9 @@ st.markdown(
     """
     ### USGS station tools
 
+    - **🗺️ Intro to USGS** — nationwide map of active USGS streamgages
+      (similar to the station map on StreamStats), with a search box to
+      find a specific gauge by name or site number.
     - **📈 Peak Flow Viewer** — annual peak-flow bar chart with return-period
       bands, pulled live from USGS. Supports a single station or a
       side-by-side two-station comparison.
