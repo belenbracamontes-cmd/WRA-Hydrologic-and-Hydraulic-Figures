@@ -92,13 +92,14 @@ def _cached_fetch_all_streamgages():
     return all_sites, failed_states
 
 
-all_sites = st.session_state.get("usgs_all_sites")
-if all_sites is None:
+all_sites, failed_states = _cached_fetch_all_streamgages()
+if "state_abbr" not in all_sites.columns:
+    # Defends against a stale cache entry from before this column existed
+    # (e.g. a cache surviving a redeploy without a full process restart) --
+    # a schema mismatch here means the cached value is simply out of date,
+    # not a real error, so just force one fresh fetch rather than crash.
+    _cached_fetch_all_streamgages.clear()
     all_sites, failed_states = _cached_fetch_all_streamgages()
-    st.session_state["usgs_all_sites"] = all_sites
-    st.session_state["usgs_failed_states"] = failed_states
-else:
-    failed_states = st.session_state.get("usgs_failed_states", [])
 
 st.subheader(f"📍 {len(all_sites):,} active streamgages nationwide")
 if failed_states:
