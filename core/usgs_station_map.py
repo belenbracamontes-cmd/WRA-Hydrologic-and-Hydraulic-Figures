@@ -31,6 +31,12 @@ SITE_COLUMNS = ["site_no", "station_nm", "dec_lat_va", "dec_long_va",
                  "huc_cd", "drain_area_va", "state_cd"]
 
 
+def hex_to_rgba(hex_color, alpha=220):
+    """'#C76E4F' -> [199, 110, 79, 220], for deck.gl per-point color fields."""
+    h = hex_color.lstrip("#")
+    return [int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16), alpha]
+
+
 def fetch_state_streamgages(state_cd):
     """Active, real-time stream sites for one state/territory code.
     Returns an empty DataFrame (not an error) if the state has none."""
