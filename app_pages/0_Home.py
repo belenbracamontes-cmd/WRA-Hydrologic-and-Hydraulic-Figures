@@ -63,6 +63,16 @@ st.markdown(
       scenarios (each with its own Datetime column) as Velocity/WSE/Depth
       lines on one chart for direct comparison.
 
+    ### NOAA tide tools
+
+    - **🌊 Tide Gage Data** — water levels for any NOAA tidal station over
+      any date range (chunked automatically past NOAA's own 30-day
+      request limit), with datum/units/time-zone/interval options matching
+      NOAA's own site. Each row auto-fills from whichever product NOAA
+      actually has data for -- Verified/Preliminary observed readings
+      where available, the astronomical Predicted tide otherwise -- plus
+      chart export, CSV download, and copy-paste-ready text.
+
     More tools will show up here as they're added.
     """
 )

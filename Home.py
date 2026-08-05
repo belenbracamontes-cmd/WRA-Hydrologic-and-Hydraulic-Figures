@@ -43,9 +43,13 @@ hecras_1d_page = st.Page("app_pages/5_HEC_RAS_1D_Figures.py", title="1D Figures"
 hecras_2d_page = st.Page("app_pages/6_HEC_RAS_2D_Figures.py", title="2D Figures", icon="🗺️",
                           url_path="hecras-2d-figures")
 
+noaa_tides_page = st.Page("app_pages/9_NOAA_Tide_Gages.py", title="Tide Gage Data", icon="🌊",
+                           url_path="noaa-tide-gages")
+
 pg = st.navigation({
     "": [home_page],
     "USGS station tools": [usgs_intro_page, peak_flow_page, annual_flow_page, lp3_page, daily_flow_page],
     "HEC RAS figures": [hecras_1d_page, hecras_2d_page],
+    "NOAA tide tools": [noaa_tides_page],
 })
 pg.run()
