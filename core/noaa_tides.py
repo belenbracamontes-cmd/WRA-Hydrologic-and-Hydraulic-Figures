@@ -46,6 +46,7 @@ rcParams["ytick.labelsize"] = 9
 
 BASE_URL = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"
 METADATA_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/{station_id}.json"
+DATUMS_URL = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/{station_id}/datums.json"
 APPLICATION_NAME = "WRA-Hydrology-Tools"
 
 # NOAA's standard tidal/geodetic datums -- not every station supports every
@@ -116,6 +117,50 @@ def fetch_station_name(station_id):
     except Exception:
         pass
     return f"NOAA Station {station_id}"
+
+
+def fetch_station_datums(station_id):
+    """Fetch the tidal/geodetic datums NOAA actually has on file for a
+    specific station (not every station supports every datum -- e.g. only
+    stations surveyed to NAVD 88 support "NAVD", and Great Lakes stations
+    use IGLD instead of the standard tidal datums).
+
+    Returns a dict: {
+        "units": "feet" or "meters",
+        "orthometric_datum": "NAVD88" (or "" if the station isn't tied to one),
+        "datums": [{"name": "MLLW", "description": "...", "value": -0.123}, ...],
+    }, or None if the lookup fails (unknown station, network error, etc.) --
+    callers should treat None as "unavailable" and fall back to the full
+    standard DATUM_OPTIONS list rather than blocking the user.
+    """
+    try:
+        r = requests.get(DATUMS_URL.format(station_id=station_id), timeout=15)
+        r.raise_for_status()
+        data = r.json()
+        if "error" in data or not data.get("datums"):
+            return None
+        return {
+            "units": data.get("units", ""),
+            "orthometric_datum": (data.get("OrthometricDatum") or "").strip(),
+            "datums": data["datums"],
+        }
+    except Exception:
+        return None
+
+
+def available_datum_codes(station_datums):
+    """Given a fetch_station_datums() result, return the subset of this
+    module's standard DATUM_OPTIONS codes that this station actually
+    supports. NAVD is exposed via the separate "OrthometricDatum" field
+    rather than inside the "datums" list itself, so it's checked separately.
+    STND (station datum) is always valid for every station."""
+    if not station_datums:
+        return {code for _, code in DATUM_OPTIONS}
+    codes = {d["name"] for d in station_datums["datums"]}
+    codes.add("STND")
+    if station_datums.get("orthometric_datum"):
+        codes.add("NAVD")
+    return {code for _, code in DATUM_OPTIONS if code in codes}
 
 
 def _fetch_one(station, product, begin, end, datum, units, time_zone, interval=None):

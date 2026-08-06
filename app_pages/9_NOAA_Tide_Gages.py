@@ -24,6 +24,7 @@ import sys
 import datetime as dt
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -31,9 +32,10 @@ from core.branding import logo_path_if_present, BRAND_DARK, OCEAN_BLUE_SHADE, TE
 from core.view_source import render_view_source
 from core.export import render_figure_download
 from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.noaa_station_map import fetch_all_tide_stations
 from core.noaa_tides import (
     DATUM_OPTIONS, UNITS_OPTIONS, TIMEZONE_OPTIONS, INTERVAL_OPTIONS, SOURCE_OPTIONS,
-    fetch_station_name, fetch_tide_data, make_plot,
+    fetch_station_name, fetch_tide_data, make_plot, fetch_station_datums, available_datum_codes,
 )
 
 logo = logo_path_if_present()
@@ -65,9 +67,35 @@ st.markdown(
 st.divider()
 st.subheader("1. Station & date range")
 
-c1, c2, c3 = st.columns(3)
-with c1:
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def _cached_fetch_all_stations():
+    return fetch_all_tide_stations()
+
+
+lookup_method = st.radio(
+    "Don't know the station number? Pick it from a list instead.",
+    ["Type station ID", "Browse by state"], key="noaa_lookup_method", horizontal=True,
+)
+
+if lookup_method == "Browse by state":
+    all_stations = _cached_fetch_all_stations()
+    state_options = sorted(s for s in all_stations["state"].unique() if s)
+    sc1, sc2 = st.columns(2)
+    with sc1:
+        picked_state = st.selectbox("State", state_options, key="noaa_picker_state")
+    with sc2:
+        state_stations = all_stations[all_stations["state"] == picked_state].sort_values("name")
+        station_labels = {row["id"]: f"{row['name']} ({row['id']})" for _, row in state_stations.iterrows()}
+        picked_station_id = st.selectbox(
+            "Station", list(station_labels.keys()), key="noaa_picker_station",
+            format_func=lambda sid: station_labels.get(sid, sid),
+        )
+    station_id = picked_station_id or ""
+else:
     station_id = st.text_input("NOAA Station ID", placeholder="e.g. 9414290", key="noaa_station_id")
+
+c2, c3 = st.columns(2)
 with c2:
     _default_end = dt.date.today()
     begin_date = st.date_input("Begin date", value=_default_end - dt.timedelta(days=45),
@@ -79,10 +107,39 @@ with c3:
                               key="noaa_end_date")
 
 st.subheader("2. Options")
+
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def _cached_fetch_station_datums(sid):
+    return fetch_station_datums(sid)
+
+
+station_datums = _cached_fetch_station_datums(station_id.strip()) if station_id.strip() else None
+avail_datum_codes = available_datum_codes(station_datums)
+
+if station_datums:
+    with st.expander(f"📏 Which datums does this station support? ({len(station_datums['datums'])} on file)"):
+        datum_table = pd.DataFrame(station_datums["datums"]).rename(columns={
+            "name": "Datum", "description": "Description",
+            "value": f"Value, relative to station datum ({station_datums['units']})",
+        })
+        st.dataframe(datum_table, use_container_width=True, hide_index=True)
+        if station_datums["orthometric_datum"]:
+            st.caption(f"Also referenced to the **{station_datums['orthometric_datum']}** orthometric "
+                       "datum (selectable below as NAVD).")
+        else:
+            st.caption("This station is **not** referenced to a NAVD orthometric datum -- picking "
+                       "NAVD below will likely return an error.")
+elif station_id.strip():
+    st.caption("⚠️ Couldn't look up which datums this station supports -- showing the full standard "
+               "list below; NOAA will report an error at fetch time if it picks one this station doesn't have.")
+
 c1, c2, c3, c4 = st.columns(4)
 with c1:
     datum = st.selectbox("Datum", [v for _, v in DATUM_OPTIONS], key="noaa_datum",
                           format_func=lambda v: {val: lbl for lbl, val in DATUM_OPTIONS}.get(v, v))
+    if station_datums and datum not in avail_datum_codes:
+        st.caption(f"⚠️ {station_id.strip()} doesn't list this datum -- NOAA may reject the request.")
 with c2:
     units = st.selectbox("Units", [v for _, v in UNITS_OPTIONS], key="noaa_units",
                           format_func=lambda v: {val: lbl for lbl, val in UNITS_OPTIONS}.get(v, v))
