@@ -48,10 +48,16 @@ noaa_intro_page = st.Page("app_pages/8_Intro_to_NOAA_Tides.py", title="Intro to 
 noaa_tides_page = st.Page("app_pages/9_NOAA_Tide_Gages.py", title="Tide Gage Data", icon="🌊",
                            url_path="noaa-tide-gages")
 
+cimis_intro_page = st.Page("app_pages/10_Intro_to_CIMIS.py", title="Intro to CIMIS", icon="🗺️",
+                            url_path="intro-to-cimis")
+cimis_data_page = st.Page("app_pages/11_CIMIS_Data.py", title="CIMIS Weather Data", icon="🌦️",
+                           url_path="cimis-data")
+
 pg = st.navigation({
     "": [home_page],
     "USGS station tools": [usgs_intro_page, peak_flow_page, annual_flow_page, lp3_page, daily_flow_page],
     "HEC RAS figures": [hecras_1d_page, hecras_2d_page],
     "NOAA tide tools": [noaa_intro_page, noaa_tides_page],
+    "CIMIS weather tools": [cimis_intro_page, cimis_data_page],
 })
 pg.run()

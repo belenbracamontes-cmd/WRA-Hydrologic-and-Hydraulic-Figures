@@ -76,6 +76,16 @@ st.markdown(
       where available, the astronomical Predicted tide otherwise -- plus
       chart export, CSV download, and copy-paste-ready text.
 
+    ### CIMIS weather tools
+
+    - **🗺️ Intro to CIMIS** — statewide map of California's ~275 CIMIS weather stations (same
+      map/search/selection feature set as Intro to USGS/NOAA Tides), with a search box to find a
+      specific station by name or number, and an active/inactive toggle.
+    - **🌦️ CIMIS Weather Data** — daily or hourly weather data (Reference ETo, precipitation,
+      temperature, humidity, solar radiation, wind, and more) for any CIMIS station, over any date
+      range, chunked automatically. Requires your own free CIMIS appKey. Each value carries CIMIS's
+      own QC flag, plus chart export, CSV download, and copy-paste-ready text.
+
     More tools will show up here as they're added.
     """
 )
