@@ -65,6 +65,9 @@ st.markdown(
 
     ### NOAA tide tools
 
+    - **🗺️ Intro to NOAA Tides** — nationwide map of NOAA's ~300 water-level
+      stations (same map/search/selection feature set as Intro to USGS),
+      with a search box to find a specific gage by name or station ID.
     - **🌊 Tide Gage Data** — water levels for any NOAA tidal station over
       any date range (chunked automatically past NOAA's own 30-day
       request limit), with datum/units/time-zone/interval options matching
