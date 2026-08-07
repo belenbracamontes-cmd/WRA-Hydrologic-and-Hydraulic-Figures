@@ -107,6 +107,17 @@ def default_scenario_style(scenario_idx):
     return LINE_STYLE_NAMES[scenario_idx % len(LINE_STYLE_NAMES)]
 
 
+def default_xs_column(col_opts, which):
+    """A reasonable default column pick for a new cross-section entry --
+    'station' -> the first column, 'elevation' -> the second, 'modification'
+    -> the third -- clamped to whatever columns actually exist."""
+    if not col_opts:
+        return None
+    offset = {"station": 0, "elevation": 1, "modification": 2}[which]
+    idx = min(offset, len(col_opts) - 1)
+    return col_opts[idx][1]
+
+
 # ── Excel loading ─────────────────────────────────────────────────────────
 def list_sheet_names(file_obj):
     file_obj.seek(0)
@@ -150,10 +161,15 @@ def make_plot(df_raw, scenario_specs, custom_title=""):
     lines, lbls = [], []
     for sc in scenario_specs:
         station_idx = sc["station_idx"]
-        df = df_raw[pd.to_numeric(df_raw.iloc[:, station_idx], errors="coerce").notna()].copy()
-        df.iloc[:, station_idx] = df.iloc[:, station_idx].astype(float)
-        df = df.sort_values(df.columns[station_idx])
-        x = df.iloc[:, station_idx]
+        # Sort by station without ever writing the numeric-coerced values
+        # back into df_raw's own column -- pandas can refuse that in-place
+        # assignment (LossySetitemError) when the source column's dtype is
+        # int64 (e.g. a whole-number station column), even though the
+        # float64 result is perfectly representable.
+        station_numeric = pd.to_numeric(df_raw.iloc[:, station_idx], errors="coerce")
+        order = station_numeric[station_numeric.notna()].sort_values().index
+        x = station_numeric.loc[order]
+        df = df_raw.loc[order]
 
         def col_data(idx, df=df):
             return pd.to_numeric(df.iloc[:, idx], errors="coerce")
@@ -180,6 +196,77 @@ def make_plot(df_raw, scenario_specs, custom_title=""):
 
     ax1.set_title(custom_title, fontsize=13, fontweight="bold", color=BRAND_DARK)
     ax1.grid(True, linestyle="--", linewidth=0.7, alpha=0.6)
+
+    fig.legend(
+        lines, lbls,
+        loc="lower center", bbox_to_anchor=(0.5, -0.14),
+        ncol=min(4, len(lines)), fontsize=10,
+        frameon=True, edgecolor="#C8D8E4",
+    )
+
+    fig.text(0.99, 0.01, "© WRA, Inc.",
+             ha="right", va="bottom", fontsize=7,
+             fontfamily="sans-serif", color="#888888")
+
+    fig.tight_layout()
+    return fig
+
+
+# ── Cross section geometry plot ──────────────────────────────────────────────
+def make_cross_section_plot(df_raw, xs_specs, custom_title=""):
+    """Build a Station-vs-Elevation cross section plot -- one or more
+    cross sections overlaid on a single set of axes (unlike make_plot()
+    above, there's never a dual y-axis here since everything plotted is
+    an elevation).
+
+    xs_specs -- list of dicts, one per cross section, since station
+        columns aren't guaranteed to line up the same way across them:
+        {"station_idx": int,
+         "elevation_idx": int, "elevation_label": str,
+         "elevation_color_hex": str, "elevation_line_style": <mpl style>,
+         "has_modification": bool,
+         "modification_idx": int or None, "modification_label": str,
+         "modification_color_hex": str, "modification_line_style": <mpl style>}
+    Returns the matplotlib Figure (does not call plt.show()).
+    """
+    fig, ax = plt.subplots(figsize=(11, 7))
+    lines, lbls = [], []
+
+    for spec in xs_specs:
+        station_idx = spec["station_idx"]
+        # See the matching comment in make_plot() -- avoid writing the
+        # numeric-coerced station values back into df_raw's own column,
+        # which pandas can refuse (LossySetitemError) for an int64 source
+        # column even though the float64 result is perfectly valid.
+        station_numeric = pd.to_numeric(df_raw.iloc[:, station_idx], errors="coerce")
+        order = station_numeric[station_numeric.notna()].sort_values().index
+        x = station_numeric.loc[order]
+        df = df_raw.loc[order]
+
+        def col_data(idx, df=df):
+            return pd.to_numeric(df.iloc[:, idx], errors="coerce")
+
+        ln, = ax.plot(
+            x, col_data(spec["elevation_idx"]),
+            color=spec["elevation_color_hex"], linestyle=spec["elevation_line_style"],
+            linewidth=1.8, label=spec["elevation_label"],
+        )
+        lines.append(ln)
+        lbls.append(spec["elevation_label"])
+
+        if spec.get("has_modification") and spec.get("modification_idx") is not None:
+            ln2, = ax.plot(
+                x, col_data(spec["modification_idx"]),
+                color=spec["modification_color_hex"], linestyle=spec["modification_line_style"],
+                linewidth=1.8, label=spec["modification_label"],
+            )
+            lines.append(ln2)
+            lbls.append(spec["modification_label"])
+
+    ax.set_xlabel(XLABEL, fontsize=11)
+    ax.set_ylabel(YLABEL_ELEV, fontsize=11)
+    ax.set_title(custom_title, fontsize=13, fontweight="bold", color=BRAND_DARK)
+    ax.grid(True, linestyle="--", linewidth=0.7, alpha=0.6)
 
     fig.legend(
         lines, lbls,
