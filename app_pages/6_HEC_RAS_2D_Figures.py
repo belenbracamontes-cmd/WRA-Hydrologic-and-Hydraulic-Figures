@@ -27,8 +27,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK
 from core.view_source import render_view_source
-from core.export import render_figure_download
-from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.style_options import render_chart_panel
 from core.hecras_2d_timeseries import (
     SERIES_TYPES, SERIES_ICONS, VEL_TYPES, LEVEL_TYPES,
     LINE_STYLES, LINE_STYLE_NAMES, WRA_COLORS,
@@ -179,13 +178,7 @@ if "hec2d_df_raw" in st.session_state:
     if "hec2d_result" in st.session_state:
         r = st.session_state["hec2d_result"]
         fig = make_plot(df_raw, r["scenario_specs"], r["title"])
-        st.pyplot(fig, use_container_width=True)
 
-        st.subheader("🎨 Presentation styling (optional)")
-        preset = st.selectbox(
-            "Annotation color (title, axis labels, ticks, borders, legend)",
-            list(ANNOTATION_PRESETS.keys()), index=1, key="hec2d_annotation_preset",
-        )
         all_series = [s for sc in r["scenario_specs"] for s in sc["series"]]
         dual = len(fig.axes) > 1
         if dual:
@@ -198,10 +191,9 @@ if "hec2d_df_raw" in st.session_state:
         else:
             first_color = all_series[0]["color_hex"] if all_series else None
             axis_specs = [(fig.axes[0], ["x", "y"], first_color)]
-        restyle_annotations(fig, preset, axis_specs)
-        st.pyplot(fig, use_container_width=True)
 
-        render_figure_download(fig, "hecras_2d_timeseries", key_prefix="hec2d_chart")
+        render_chart_panel(fig, key_prefix="hec2d_chart", base_filename="hecras_2d_timeseries",
+                            axis_specs=axis_specs)
 else:
     st.info("Upload an Excel file above to get started.")
 

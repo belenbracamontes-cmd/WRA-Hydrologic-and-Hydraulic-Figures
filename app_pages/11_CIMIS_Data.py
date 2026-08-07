@@ -25,8 +25,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, FIELD_GREEN_SHADE
 from core.view_source import render_view_source
-from core.export import render_figure_download
-from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.style_options import render_chart_panel
 from core.cimis_stations import fetch_all_cimis_stations
 from core.cimis_data import (
     DAILY_DATA_ITEMS, HOURLY_DATA_ITEMS, UNITS_OPTIONS, SCOPE_OPTIONS, QC_FLAG_MEANINGS,
@@ -230,18 +229,9 @@ if "cimis_result" in st.session_state:
     st.caption(f"{len(df):,} rows — {r['scope'].capitalize()}, {unit_label} units")
 
     fig = make_plot(df, r["station_label"], r["item_labels"], unit_label, r["title"])
-    st.pyplot(fig, use_container_width=True)
-
-    st.subheader("🎨 Presentation styling (optional)")
-    preset = st.selectbox(
-        "Annotation color (title, axis labels, ticks, borders, legend)",
-        list(ANNOTATION_PRESETS.keys()), index=1, key="cimis_annotation_preset",
-    )
     axis_specs = [(ax, ["x", "y"], FIELD_GREEN_SHADE) for ax in fig.axes]
-    restyle_annotations(fig, preset, axis_specs)
-    st.pyplot(fig, use_container_width=True)
-
-    render_figure_download(fig, f"cimis_{r['station_id']}", key_prefix="cimis_chart")
+    render_chart_panel(fig, key_prefix="cimis_chart", base_filename=f"cimis_{r['station_id']}",
+                        axis_specs=axis_specs)
 
     st.divider()
     st.subheader("Data table")

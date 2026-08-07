@@ -29,8 +29,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA
 from core.view_source import render_view_source
-from core.export import render_figure_download
-from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.style_options import render_chart_panel
 from core.lp3_analysis import (
     fetch_usgs_peaks,
     make_lp3_plot,
@@ -133,24 +132,13 @@ if "lp3_datasets" in st.session_state:
         rp_list=RP_ALL,
     )
 
-    st.pyplot(fig, use_container_width=True)
-
-    st.subheader("🎨 Presentation styling (optional)")
-    preset = st.selectbox(
-        "Annotation color (title, axis labels, ticks, borders, legend)",
-        list(ANNOTATION_PRESETS.keys()),
-        index=1,  # default: Black -- matches the plot's current look
-        key="lp3_annotation_preset",
-    )
     station_color = datasets[0]["color"]
     axis_specs = [
         (fig.axes[0], ["x", "y"], station_color),
         (fig.axes[1], ["x"], station_color),
     ]
-    restyle_annotations(fig, preset, axis_specs)
-    st.pyplot(fig, use_container_width=True)
-
-    render_figure_download(fig, "lp3_flood_frequency", key_prefix="lp3_plot", label="Download plot")
+    render_chart_panel(fig, key_prefix="lp3_plot", base_filename="lp3_flood_frequency",
+                        axis_specs=axis_specs, download_label="Download plot")
 
     st.subheader("LP3 Parameters (Bulletin 17C / Wilson-Hilferty)")
     st.dataframe(lp3_params_table(datasets), use_container_width=True, hide_index=True)
@@ -162,10 +150,9 @@ if "lp3_datasets" in st.session_state:
         st.dataframe(df_tbl, use_container_width=True, hide_index=True)
 
     table_fig = build_table_figure(summary)
-    render_figure_download(
-        table_fig, "lp3_design_flow_tables", key_prefix="lp3_table",
-        label="Download design-flow tables",
-    )
+    table_axis_specs = [(ax, [], None) for ax in table_fig.axes]  # no visible axis chrome (ax.axis("off"))
+    render_chart_panel(table_fig, key_prefix="lp3_table", base_filename="lp3_design_flow_tables",
+                        axis_specs=table_axis_specs, download_label="Download design-flow tables")
 else:
     st.info("Enter a station ID in the sidebar and click **Run LP3** to get started.")
 

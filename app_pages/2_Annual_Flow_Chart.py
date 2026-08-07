@@ -26,8 +26,7 @@ from core.branding import (
     logo_path_if_present, BRAND_DARK, FIELD_GREEN_SHADE, FIELD_GREEN_TINT,
 )
 from core.view_source import render_view_source
-from core.export import render_figure_download
-from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.style_options import render_chart_panel
 from core.ui_helpers import toggle_button
 from core.annual_flow_chart import (
     fetch_peak_flows,
@@ -174,15 +173,6 @@ if "afg_datasets" in st.session_state:
         show_avg=True,
         organization=settings["org"] or "WRA, Inc.",
     )
-    st.pyplot(fig, use_container_width=True)
-
-    st.subheader("🎨 Presentation styling (optional)")
-    preset = st.selectbox(
-        "Annotation color (title, axis labels, ticks, borders, legend)",
-        list(ANNOTATION_PRESETS.keys()),
-        index=1,  # default: Black -- matches the plot's current look
-        key="afc_annotation_preset",
-    )
     if len(datasets) > 1:
         st.caption(
             "Two stations are shown -- \"Match axis color to its data series\" "
@@ -194,10 +184,8 @@ if "afg_datasets" in st.session_state:
         (fig.axes[0], ["x", "y"], peak_color),
         (fig.axes[1], ["y"], avg_color),
     ]
-    restyle_annotations(fig, preset, axis_specs)
-    st.pyplot(fig, use_container_width=True)
-
-    render_figure_download(fig, "annual_flow_chart", key_prefix="afc_chart")
+    render_chart_panel(fig, key_prefix="afc_chart", base_filename="annual_flow_chart",
+                        axis_specs=axis_specs)
 
     st.subheader("Annual Flow Summary")
     st.dataframe(summary_table(datasets), use_container_width=True, hide_index=True)

@@ -30,8 +30,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, OCEAN_BLUE_SHADE, TERRACOTA_SHADE
 from core.view_source import render_view_source
-from core.export import render_figure_download
-from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.style_options import render_chart_panel
 from core.noaa_station_map import fetch_all_tide_stations
 from core.noaa_tides import (
     DATUM_OPTIONS, UNITS_OPTIONS, TIMEZONE_OPTIONS, INTERVAL_OPTIONS, SOURCE_OPTIONS,
@@ -204,18 +203,9 @@ if "noaa_result" in st.session_state:
                ", ".join(f"{status}: {count:,}" for status, count in df["status"].value_counts().items()))
 
     fig = make_plot(df, r["station_label"], r["datum"], r["units"], r["title"])
-    st.pyplot(fig, use_container_width=True)
-
-    st.subheader("🎨 Presentation styling (optional)")
-    preset = st.selectbox(
-        "Annotation color (title, axis labels, ticks, borders, legend)",
-        list(ANNOTATION_PRESETS.keys()), index=1, key="noaa_annotation_preset",
-    )
     axis_specs = [(fig.axes[0], ["x", "y"], OCEAN_BLUE_SHADE)]
-    restyle_annotations(fig, preset, axis_specs)
-    st.pyplot(fig, use_container_width=True)
-
-    render_figure_download(fig, f"noaa_tides_{r['station_id']}", key_prefix="noaa_chart")
+    render_chart_panel(fig, key_prefix="noaa_chart", base_filename=f"noaa_tides_{r['station_id']}",
+                        axis_specs=axis_specs)
 
     st.divider()
     st.subheader("Data table")

@@ -54,14 +54,17 @@ st.markdown(
 
     ### HEC RAS figures
 
-    - **📐 1D Figures** — cross-section plotter for 1D HEC-RAS model
-      results: upload an Excel sheet and plot any number of
-      Velocity/WSE/Profile/Elevation scenarios, each with its own Station
-      column.
+    - **📐 1D Figures** — profile plotter for 1D HEC-RAS model results:
+      upload an Excel sheet and plot any number of Velocity/WSE/Profile/
+      Elevation scenarios, each with its own Station column.
     - **🗺️ 2D Figures** — time-series plotter for 2D HEC-RAS model results:
       upload an Excel sheet and overlay any number of point/cross-section
       scenarios (each with its own Datetime column) as Velocity/WSE/Depth
       lines on one chart for direct comparison.
+    - **📏 Cross Sections** — Station-vs-Elevation geometry plotter: upload
+      an Excel sheet and overlay any number of cross sections, each with
+      an optional "modification" profile (e.g. a proposed/regraded
+      channel) plotted alongside it.
 
     ### NOAA tide tools
 

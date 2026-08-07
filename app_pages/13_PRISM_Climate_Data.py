@@ -22,8 +22,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, CALIFORNIA_SUNSET_SHADE
 from core.view_source import render_view_source
-from core.export import render_figure_download
-from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.style_options import render_chart_panel
 from core.prism_data import (
     VARIABLES, RANGE_OPTIONS, UNITS_OPTIONS, RESOLUTION_OPTIONS,
     in_conus, fetch_location_info, fetch_prism_timeseries, make_plot,
@@ -177,18 +176,9 @@ if "prism_result" in st.session_state:
     st.caption(f"{len(df):,} rows — {range_label}, {unit_label} units")
 
     fig = make_plot(df, r["location_label"], r["item_labels"], unit_label, r["title"])
-    st.pyplot(fig, use_container_width=True)
-
-    st.subheader("🎨 Presentation styling (optional)")
-    preset = st.selectbox(
-        "Annotation color (title, axis labels, ticks, borders, legend)",
-        list(ANNOTATION_PRESETS.keys()), index=1, key="prism_annotation_preset",
-    )
     axis_specs = [(ax, ["x", "y"], CALIFORNIA_SUNSET_SHADE) for ax in fig.axes]
-    restyle_annotations(fig, preset, axis_specs)
-    st.pyplot(fig, use_container_width=True)
-
-    render_figure_download(fig, f"prism_{r['lat']:.4f}_{r['lon']:.4f}", key_prefix="prism_chart")
+    render_chart_panel(fig, key_prefix="prism_chart",
+                        base_filename=f"prism_{r['lat']:.4f}_{r['lon']:.4f}", axis_specs=axis_specs)
 
     st.divider()
     st.subheader("Data table")

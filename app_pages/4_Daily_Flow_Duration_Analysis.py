@@ -27,8 +27,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA, OCEAN_BLUE
 from core.view_source import render_view_source
-from core.export import render_figure_download
-from core.style_options import restyle_annotations, ANNOTATION_PRESETS
+from core.style_options import render_chart_panel
 from core.ui_helpers import toggle_button
 
 from core import daily_flow_range as dfr
@@ -73,17 +72,9 @@ def _cached_fetch_full_wfc(site_no):
 
 
 def _styling_and_download(fig, axis_specs, base_filename, key_prefix, label="Download chart"):
-    """Shared presentation-styling panel + SVG download, used by every tab."""
-    st.subheader("🎨 Presentation styling (optional)")
-    preset = st.selectbox(
-        "Annotation color (title, axis labels, ticks, borders, legend)",
-        list(ANNOTATION_PRESETS.keys()),
-        index=1,  # default: Black -- matches the plot's current look
-        key=f"{key_prefix}_annotation_preset",
-    )
-    restyle_annotations(fig, preset, axis_specs)
-    st.pyplot(fig, use_container_width=True)
-    render_figure_download(fig, base_filename, key_prefix=key_prefix, label=label)
+    """Shared customize-and-export panel, used by every tab."""
+    render_chart_panel(fig, key_prefix=key_prefix, base_filename=base_filename,
+                        axis_specs=axis_specs, download_label=label)
 
 
 logo = logo_path_if_present()
@@ -237,7 +228,6 @@ with tab_dfr:
 
         fig = dfr.make_plot(datasets, settings["wy_start"], settings["wy_end"],
                              settings["use_log"], settings["title"])
-        st.pyplot(fig, use_container_width=True)
 
         axis_specs = [(fig.axes[0], ["x", "y"], datasets[0]["color"])]
         _styling_and_download(fig, axis_specs, "daily_flow_range", key_prefix="dfr_chart")
@@ -407,7 +397,6 @@ with tab_dh1:
             show_monthly_avg=r["show_monthly_avg"], monthly_avg_color=r["monthly_avg_color"],
             monthly_avg_style=r["monthly_avg_style"], monthly_avg_series=r["monthly_avg_series"],
         )
-        st.pyplot(fig, use_container_width=True)
 
         axis_specs = [(fig.axes[0], ["x", "y"], None)]
         _styling_and_download(fig, axis_specs, "duration_hydrograph", key_prefix="dh1_chart")
@@ -598,7 +587,6 @@ with tab_dh2:
             show_monthly_avg=r["show_monthly_avg"], monthly_avg_color=r["monthly_avg_color"],
             monthly_avg_style=r["monthly_avg_style"], monthly_avg_series=r["monthly_avg_series"],
         )
-        st.pyplot(fig, use_container_width=True)
 
         axis_specs = [(fig.axes[0], ["x", "y"], None)]
         _styling_and_download(fig, axis_specs, "duration_hydrograph_combined", key_prefix="dh2_chart")
@@ -768,7 +756,6 @@ with tab_wfd:
             r["start_wy"], r["end_wy"], r["months"], r["use_log"],
             r["show_points"], r["show_markers"], r["title"],
         )
-        st.pyplot(fig, use_container_width=True)
 
         axis_specs = [(fig.axes[0], ["x", "y"], None)]
         _styling_and_download(fig, axis_specs, "weibull_flow_duration", key_prefix="wfd_chart",
@@ -933,7 +920,6 @@ with tab_wfc:
             r["show_threshold"], r["threshold_pct"], r["threshold_color"], r["threshold_style"],
             r["title"],
         )
-        st.pyplot(fig, use_container_width=True)
 
         axis_specs = [(fig.axes[0], ["x", "y"], r["curve_color"])]
         _styling_and_download(fig, axis_specs, "weibull_flow_duration_combined", key_prefix="wfc_chart",

@@ -42,6 +42,8 @@ hecras_1d_page = st.Page("app_pages/5_HEC_RAS_1D_Figures.py", title="1D Figures"
                           url_path="hecras-1d-figures")
 hecras_2d_page = st.Page("app_pages/6_HEC_RAS_2D_Figures.py", title="2D Figures", icon="🗺️",
                           url_path="hecras-2d-figures")
+hecras_xs_page = st.Page("app_pages/14_HEC_RAS_Cross_Sections.py", title="Cross Sections", icon="📏",
+                          url_path="cross-sections")
 
 noaa_intro_page = st.Page("app_pages/8_Intro_to_NOAA_Tides.py", title="Intro to NOAA Tides", icon="🗺️",
                            url_path="intro-to-noaa-tides")
@@ -61,7 +63,7 @@ prism_data_page = st.Page("app_pages/13_PRISM_Climate_Data.py", title="PRISM Cli
 pg = st.navigation({
     "": [home_page],
     "USGS station tools": [usgs_intro_page, peak_flow_page, annual_flow_page, lp3_page, daily_flow_page],
-    "HEC RAS figures": [hecras_1d_page, hecras_2d_page],
+    "HEC RAS figures": [hecras_1d_page, hecras_2d_page, hecras_xs_page],
     "NOAA tide tools": [noaa_intro_page, noaa_tides_page],
     "CIMIS weather tools": [cimis_intro_page, cimis_data_page],
     "PRISM climate tools": [prism_intro_page, prism_data_page],
