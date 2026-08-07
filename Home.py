@@ -53,11 +53,17 @@ cimis_intro_page = st.Page("app_pages/10_Intro_to_CIMIS.py", title="Intro to CIM
 cimis_data_page = st.Page("app_pages/11_CIMIS_Data.py", title="CIMIS Weather Data", icon="🌦️",
                            url_path="cimis-data")
 
+prism_intro_page = st.Page("app_pages/12_Intro_to_PRISM.py", title="Intro to PRISM", icon="🗺️",
+                            url_path="intro-to-prism")
+prism_data_page = st.Page("app_pages/13_PRISM_Climate_Data.py", title="PRISM Climate Data", icon="🌦️",
+                           url_path="prism-data")
+
 pg = st.navigation({
     "": [home_page],
     "USGS station tools": [usgs_intro_page, peak_flow_page, annual_flow_page, lp3_page, daily_flow_page],
     "HEC RAS figures": [hecras_1d_page, hecras_2d_page],
     "NOAA tide tools": [noaa_intro_page, noaa_tides_page],
     "CIMIS weather tools": [cimis_intro_page, cimis_data_page],
+    "PRISM climate tools": [prism_intro_page, prism_data_page],
 })
 pg.run()

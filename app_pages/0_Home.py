@@ -86,6 +86,16 @@ st.markdown(
       range, chunked automatically. Requires your own free CIMIS appKey. Each value carries CIMIS's
       own QC flag, plus chart export, CSV download, and copy-paste-ready text.
 
+    ### PRISM climate tools
+
+    - **🗺️ Intro to PRISM** — PRISM is a gridded climate dataset (not a station network) covering
+      the whole contiguous US. Pin any point by coordinates or place-name search, and see its
+      state/county, grid elevation, and 1991-2020 monthly climate normals.
+    - **🌦️ PRISM Climate Data** — daily, monthly, or annual precipitation, temperature, dew point,
+      vapor pressure deficit, and solar radiation for any point in the contiguous US, over any date
+      range, chunked automatically. No API key needed. Chart export, CSV download, and
+      copy-paste-ready text included.
+
     More tools will show up here as they're added.
     """
 )
