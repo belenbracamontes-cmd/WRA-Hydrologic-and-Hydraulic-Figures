@@ -78,7 +78,10 @@ def _color_key(idx):
     return f"prism_pin_color_{idx}"
 
 
-# ── Map (click anywhere to drop a pin) ──────────────────────────────────────
+# ── Map (click anywhere to drop a pin, once click-to-add is armed) ─────────
+add_mode = st.toggle("📍 Click-to-add pins", key="prism_click_add_mode",
+                      help="Turn this on, then click anywhere on the map to drop a pin there.")
+
 map_pins = [
     {"lat": p["lat"], "lon": p["lon"], "label": p["label"],
      "color": st.session_state.get(_color_key(i), CALIFORNIA_SUNSET)}
@@ -88,12 +91,17 @@ view = st.session_state["prism_map_view"]
 clicked = render_click_map(
     center={"lat": view["lat"], "lon": view["lon"]}, zoom=view["zoom"],
     pins=map_pins, bounds=CONUS_BOUNDS, view_signal=st.session_state["prism_view_signal"],
-    key="prism_click_map",
+    add_mode=add_mode, key="prism_click_map",
 )
+if add_mode:
+    st.caption("Click-to-add is **on** -- click anywhere on the map to drop a pin there.")
+else:
+    st.caption("Turn on **Click-to-add pins** above to drop a pin by clicking the map, or use the "
+               "fields below.")
 st.caption("The dashed outline marks PRISM's CONUS grid extent -- points outside it have no PRISM data. "
            "Map tiles © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.")
 
-if clicked:
+if clicked and add_mode:
     lat, lon = clicked["lat"], clicked["lon"]
     pinned.append({"lat": lat, "lon": lon, "label": f"{lat:.4f}, {lon:.4f}"})
     if not in_conus(lat, lon):

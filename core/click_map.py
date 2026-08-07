@@ -69,11 +69,19 @@ export default function (component) {
       }).addTo(map);
       const markersLayer = L.layerGroup().addTo(map);
       map.on('click', (e) => {
+        // Read add-mode fresh off `inst` at click time (not captured in
+        // this closure at creation time) so toggling it in Python without
+        // remounting the map still takes effect immediately.
+        if (!inst.addMode) return;
         setTriggerValue('clicked', { lat: e.latlng.lat, lon: e.latlng.lng });
       });
-      inst = { map, markersLayer, boundsLayer: null, lastViewSignal: null };
+      inst = { map, markersLayer, boundsLayer: null, lastViewSignal: null, addMode: false };
       instances.set(parentElement, inst);
     }
+
+    inst.addMode = !!data.add_mode;
+    const mapDiv = parentElement.querySelector('#map-root');
+    mapDiv.style.cursor = inst.addMode ? 'crosshair' : '';
 
     inst.markersLayer.clearLayers();
     (data.pins || []).forEach((p) => {
@@ -112,7 +120,7 @@ export default function (component) {
 _CLICK_MAP = st.components.v2.component("wra_click_map", html=_HTML, js=_JS)
 
 
-def render_click_map(*, center, zoom, pins, bounds, view_signal, key, height=500):
+def render_click_map(*, center, zoom, pins, bounds, view_signal, add_mode=True, key, height=500):
     """Render a click-to-drop-a-pin map.
 
     center -- {"lat": float, "lon": float}, the initial/forced map center.
@@ -125,6 +133,14 @@ def render_click_map(*, center, zoom, pins, bounds, view_signal, key, height=500
     view_signal -- any hashable value; change it (e.g. after a "Zoom to
         this pin" button) to force the map to re-center/zoom without
         fighting the user's own pan/zoom the rest of the time.
+    add_mode -- whether a click should actually be treated as "drop a
+        pin here" (defaults to True). When False, the map still pans/
+        zooms/shows a tooltip normally, but clicks are ignored -- both
+        here in JS (the map cursor also switches to a crosshair only
+        when this is True) and, as a second guard, by whoever reads this
+        function's return value and should double check it before
+        acting, in case a click's trigger event lands on the same rerun
+        this flips from True to False.
     key -- Streamlit widget key for this map instance.
 
     Returns the dict the user clicked on the map this run, as
@@ -133,7 +149,8 @@ def render_click_map(*, center, zoom, pins, bounds, view_signal, key, height=500
     """
     result = _CLICK_MAP(
         key=key,
-        data={"center": center, "zoom": zoom, "pins": pins, "bounds": bounds, "view_signal": view_signal},
+        data={"center": center, "zoom": zoom, "pins": pins, "bounds": bounds,
+              "view_signal": view_signal, "add_mode": add_mode},
         on_clicked_change=lambda: None,
     )
     return result.clicked
