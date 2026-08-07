@@ -4,25 +4,30 @@ PRISM is fundamentally different from the USGS/NOAA/CIMIS networks
 elsewhere in this app: it's a spatially continuous *gridded* climate
 dataset covering the contiguous US, not a network of discrete stations.
 There's no station list to browse -- instead, this page lets you pin any
-point (typed lat/lon, or searched by place name) and see it on a map,
-along with what PRISM knows about that exact spot: its state/county,
-grid elevation, and 1991-2020 monthly climate normals. Pinned points carry
-over to the CIMIS-style [PRISM Climate Data](/prism-data) page as a
-shortcut for pulling a full time series from one of them later.
+point (by clicking the map directly, typing lat/lon, or searching by
+place name) and see it on a map, along with what PRISM knows about that
+exact spot: its state/county, grid elevation, and 1991-2020 monthly
+climate normals. Pinned points carry over to the CIMIS-style
+[PRISM Climate Data](/prism-data) page as a shortcut for pulling a full
+time series from one of them later.
 
-Like the USGS/NOAA/CIMIS maps, this uses only the "Standard" pydeck
-basemap (see those pages for why Satellite/Terrain aren't offered).
+Unlike the pydeck-based USGS/NOAA/CIMIS maps, this page's map is a small
+Leaflet map (via a custom Streamlit component) rather than pydeck --
+pydeck's ``on_select`` only reports clicks on already-rendered pickable
+objects, with no event for a plain click on empty map area returning a
+latitude/longitude, which is exactly what click-to-drop-a-pin needs. See
+core/click_map.py for the full rationale.
 """
 
 import sys
 from pathlib import Path
 
-import pydeck as pdk
 import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from core.branding import logo_path_if_present, BRAND_DARK, CALIFORNIA_SUNSET, CALIFORNIA_SUNSET_SHADE
+from core.branding import logo_path_if_present, BRAND_DARK, CALIFORNIA_SUNSET
 from core.view_source import render_view_source
+from core.click_map import render_click_map
 from core.prism_data import (
     CONUS_BOUNDS, in_conus, fetch_location_info, fetch_climate_normals, geocode_place,
 )
@@ -50,8 +55,8 @@ st.markdown(
     and PRISM gives you precipitation, temperature, dew point, vapor pressure deficit, and solar
     radiation estimates for that exact spot.
 
-    Type coordinates directly, or search by place name below, to pin a point and see what PRISM
-    knows about it. No API key is needed for anything on this page or the
+    **Click anywhere on the map below to drop a pin there directly** -- or type coordinates or
+    search by place name underneath it. No API key is needed for anything on this page or the
     [PRISM Climate Data](/prism-data) page -- unlike CIMIS, PRISM's public API is fully open.
     """
 )
@@ -62,7 +67,9 @@ st.divider()
 if "prism_pinned" not in st.session_state:
     st.session_state["prism_pinned"] = []  # list of dicts: lat, lon, label
 if "prism_map_view" not in st.session_state:
-    st.session_state["prism_map_view"] = {"lat": 39.5, "lon": -98.35, "zoom": 3.2}
+    st.session_state["prism_map_view"] = {"lat": 39.5, "lon": -98.35, "zoom": 3.9}
+if "prism_view_signal" not in st.session_state:
+    st.session_state["prism_view_signal"] = 0
 
 pinned = st.session_state["prism_pinned"]
 
@@ -71,47 +78,30 @@ def _color_key(idx):
     return f"prism_pin_color_{idx}"
 
 
-# ── Map ──────────────────────────────────────────────────────────────────────
-bounds_rows = [
-    {"lat": CONUS_BOUNDS["min_lat"], "lng": CONUS_BOUNDS["min_lon"]},
-    {"lat": CONUS_BOUNDS["min_lat"], "lng": CONUS_BOUNDS["max_lon"]},
-    {"lat": CONUS_BOUNDS["max_lat"], "lng": CONUS_BOUNDS["max_lon"]},
-    {"lat": CONUS_BOUNDS["max_lat"], "lng": CONUS_BOUNDS["min_lon"]},
-    {"lat": CONUS_BOUNDS["min_lat"], "lng": CONUS_BOUNDS["min_lon"]},
+# ── Map (click anywhere to drop a pin) ──────────────────────────────────────
+map_pins = [
+    {"lat": p["lat"], "lon": p["lon"], "label": p["label"],
+     "color": st.session_state.get(_color_key(i), CALIFORNIA_SUNSET)}
+    for i, p in enumerate(pinned)
 ]
-layers = [pdk.Layer(
-    "PathLayer", data=[{"path": [[r["lng"], r["lat"]] for r in bounds_rows]}],
-    get_path="path", get_color=[150, 150, 150, 120], get_width=2, width_min_pixels=1,
-)]
-
-if pinned:
-    pin_rows = []
-    for i, p in enumerate(pinned):
-        color_hex = st.session_state.get(_color_key(i), CALIFORNIA_SUNSET)
-        h = color_hex.lstrip("#")
-        rgba = [int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16), 235]
-        pin_rows.append({"lat": p["lat"], "lng": p["lon"], "label": p["label"], "color": rgba})
-    layers.append(pdk.Layer(
-        "ScatterplotLayer", data=pin_rows,
-        get_position=["lng", "lat"], get_fill_color="color",
-        get_line_color=[255, 255, 255], line_width_min_pixels=1, stroked=True,
-        get_radius=1, radius_min_pixels=7, radius_max_pixels=16,
-        pickable=True, auto_highlight=True,
-    ))
-
 view = st.session_state["prism_map_view"]
-view_state = pdk.ViewState(latitude=view["lat"], longitude=view["lon"], zoom=view["zoom"], pitch=0)
-tooltip = {"html": "<b>{label}</b>", "style": {"backgroundColor": CALIFORNIA_SUNSET_SHADE, "color": "white"}}
-deck = pdk.Deck(layers=layers, initial_view_state=view_state, tooltip=tooltip)
+clicked = render_click_map(
+    center={"lat": view["lat"], "lon": view["lon"]}, zoom=view["zoom"],
+    pins=map_pins, bounds=CONUS_BOUNDS, view_signal=st.session_state["prism_view_signal"],
+    key="prism_click_map",
+)
+st.caption("The dashed outline marks PRISM's CONUS grid extent -- points outside it have no PRISM data. "
+           "Map tiles © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.")
 
-colors_sig = tuple(st.session_state.get(_color_key(i), CALIFORNIA_SUNSET) for i in range(len(pinned)))
-map_key = (f"prism_map_{round(view['lat'], 4)}_{round(view['lon'], 4)}_{view['zoom']}_"
-           f"{len(pinned)}_{hash(colors_sig)}")
-st.pydeck_chart(deck, use_container_width=True, height=600, key=map_key)
-st.caption("The gray outline marks PRISM's CONUS grid extent -- points outside it have no PRISM data.")
+if clicked:
+    lat, lon = clicked["lat"], clicked["lon"]
+    pinned.append({"lat": lat, "lon": lon, "label": f"{lat:.4f}, {lon:.4f}"})
+    if not in_conus(lat, lon):
+        st.warning("That point falls outside PRISM's CONUS grid -- it won't return any data.")
+    st.rerun()
 
 st.divider()
-st.subheader("Pin a point")
+st.subheader("Or specify a point directly")
 
 method = st.radio("How do you want to specify a location?", ["Enter coordinates", "Search by place name"],
                    key="prism_pick_method", horizontal=True)
@@ -168,7 +158,8 @@ else:
                 st.color_picker("Color", CALIFORNIA_SUNSET, key=_color_key(i), label_visibility="collapsed")
             with c3:
                 if st.button("🔍 Zoom", key=f"prism_zoom_{i}"):
-                    st.session_state["prism_map_view"] = {"lat": p["lat"], "lon": p["lon"], "zoom": 8.0}
+                    st.session_state["prism_map_view"] = {"lat": p["lat"], "lon": p["lon"], "zoom": 9}
+                    st.session_state["prism_view_signal"] += 1
                     st.rerun()
             with c4:
                 if st.button("✕ Remove", key=f"prism_remove_{i}"):
