@@ -136,42 +136,42 @@ PLOT_BG_PRESETS = {
 EXPORT_BG_OPTIONS = ["Transparent", "Normal"]
 
 
+# Sentinel option that sits at the top of every color dropdown -- picking it
+# reveals a real st.color_picker instead of a named WRA swatch.
+_CUSTOMIZE_SENTINEL = "🎨 Customize a different color…"
+
+
 def _render_color_choice(label, default_hex, key_prefix):
-    """One graph-color control: a dropdown of named WRA brand colors by
-    default, with a switch next to it to pick any custom hex color
-    instead (a plain st.color_picker, same widget used everywhere else
-    in the app).
+    """One graph-color control: a dropdown of named WRA brand colors, with
+    "Customize a different color..." as its first option -- picking that
+    swaps in a real st.color_picker instead. Either way, the actual color
+    itself is always shown as a small swatch next to the dropdown (never
+    a hex code -- that's what the picker's own popover is for).
     """
-    use_hex_key = f"{key_prefix}_use_hex"
-    if use_hex_key not in st.session_state:
-        # Default to hex mode when the incoming color isn't itself a named
-        # WRA swatch (e.g. the black/white overlay colors used elsewhere in
-        # the app) -- otherwise default to the WRA dropdown.
-        st.session_state[use_hex_key] = default_hex.upper() not in _WRA_HEX_TO_NAME
+    names = [_CUSTOMIZE_SENTINEL] + list(_WRA_NAME_TO_HEX.keys())
+    name_key = f"{key_prefix}_name"
+    if name_key not in st.session_state:
+        # Land on the matching WRA color if the incoming default is one,
+        # otherwise open straight into custom-color mode (e.g. the black/
+        # white overlay colors used elsewhere in the app).
+        st.session_state[name_key] = _WRA_HEX_TO_NAME.get(default_hex.upper(), _CUSTOMIZE_SENTINEL)
 
-    col_picker, col_switch = st.columns([4, 1])
-    with col_switch:
-        use_hex = st.toggle("Hex", key=use_hex_key,
-                             help="Pick any custom hex color instead of a WRA brand color.")
+    col_picker, col_swatch = st.columns([5, 1])
     with col_picker:
-        if use_hex:
-            chosen = st.color_picker(label, default_hex, key=f"{key_prefix}_hex")
-        else:
-            names = list(_WRA_NAME_TO_HEX.keys())
-            name_key = f"{key_prefix}_name"
-            if name_key not in st.session_state:
-                st.session_state[name_key] = _WRA_HEX_TO_NAME.get(default_hex.upper(), names[0])
-            picked_name = st.selectbox(
-                label, names, key=name_key,
-                format_func=lambda n: f"{n} ({_WRA_NAME_TO_HEX[n]})",
-            )
-            chosen = _WRA_NAME_TO_HEX[picked_name]
+        picked_name = st.selectbox(label, names, key=name_key)
 
-    st.markdown(
-        f'<div style="height:8px;border-radius:4px;margin-top:-6px;'
-        f'background:{chosen};border:1px solid rgba(0,0,0,0.15);"></div>',
-        unsafe_allow_html=True,
-    )
+    with col_swatch:
+        if picked_name == _CUSTOMIZE_SENTINEL:
+            chosen = st.color_picker("Custom color", default_hex, key=f"{key_prefix}_hex",
+                                      label_visibility="collapsed")
+        else:
+            chosen = _WRA_NAME_TO_HEX[picked_name]
+            st.markdown("&nbsp;")  # aligns the swatch with the dropdown's own input row
+            st.markdown(
+                f'<div style="height:2.4rem;border-radius:6px;'
+                f'background:{chosen};border:1px solid rgba(0,0,0,0.15);"></div>',
+                unsafe_allow_html=True,
+            )
     return chosen
 
 
@@ -195,7 +195,8 @@ def render_data_color_pickers(series, key_prefix):
     st.subheader("🎨 Customize & export")
     chosen = {}
     if series:
-        st.caption("Data colors — pick a WRA brand color, or flip \"Hex\" for any custom color")
+        st.caption("Data colors — pick a WRA brand color, or choose "
+                   "\"Customize a different color…\" for any custom color")
         for i, s in enumerate(series):
             chosen[s["label"]] = _render_color_choice(
                 s["label"], s["color"], f"{key_prefix}_datacolor_{i}"

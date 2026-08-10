@@ -61,14 +61,17 @@ with col_title:
 st.divider()
 st.subheader("1. Station")
 
-c1, c2, c3 = st.columns(3)
+# Color starts at this WRA default and stays that way until the user
+# customizes it in the "Customize & export" panel below, once results
+# exist -- no separate color choice up here, so there's exactly one place
+# on the whole page where chart color gets decided.
+c1, c2 = st.columns(2)
 with c1:
     s1_id = st.text_input("Station ID", placeholder="e.g. 11113000", key="lp3_s1_id")
 with c2:
-    s1_color = st.color_picker("Color", TERRACOTA, key="lp3_s1_color")
-with c3:
     s1_label = st.text_input("Label (optional)", key="lp3_s1_label",
                               placeholder="Station name")
+s1_color = TERRACOTA
 
 st.subheader("2. Options")
 title = st.text_input("Title (optional)", key="lp3_title",

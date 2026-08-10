@@ -71,29 +71,26 @@ with col_title:
 st.divider()
 st.subheader("1. Station(s)")
 
-c1, c2, c3, c4 = st.columns(4)
+# Colors start at these WRA defaults and stay that way until the user
+# customizes them in the "Customize & export" panel below, once results
+# exist -- no separate color choice up here, so there's exactly one place
+# in the whole page where chart color gets decided.
+c1, c2 = st.columns(2)
 with c1:
     s1_id = st.text_input("Station 1 ID", value="11164500", key="afg_s1_id")
 with c2:
-    s1_peak_color = st.color_picker("Peak color", WRA_PEAK_BLUE, key="afg_s1_peak_color")
-with c3:
-    s1_avg_color = st.color_picker("Avg color", WRA_AVG_CYAN, key="afg_s1_avg_color")
-with c4:
     s1_label = st.text_input("Label (optional)", key="afg_s1_label",
                               placeholder="e.g. San Francisquito Ck")
+s1_peak_color, s1_avg_color = WRA_PEAK_BLUE, WRA_AVG_CYAN
 
 compare = toggle_button("+ Compare a second station", "− Remove second station",
                          key="afg_compare")
 s2_id, s2_peak_color, s2_avg_color, s2_label = "", FIELD_GREEN_SHADE, FIELD_GREEN_TINT, ""
 if compare:
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2 = st.columns(2)
     with c1:
         s2_id = st.text_input("Station 2 ID", placeholder="e.g. 11143000", key="afg_s2_id")
     with c2:
-        s2_peak_color = st.color_picker("Peak color", FIELD_GREEN_SHADE, key="afg_s2_peak_color")
-    with c3:
-        s2_avg_color = st.color_picker("Avg color", FIELD_GREEN_TINT, key="afg_s2_avg_color")
-    with c4:
         s2_label = st.text_input("Label (optional)", key="afg_s2_label",
                                   placeholder="Station 2 name")
 
