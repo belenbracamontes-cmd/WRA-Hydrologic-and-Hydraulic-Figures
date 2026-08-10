@@ -25,8 +25,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import (
     logo_path_if_present, BRAND_DARK, FIELD_GREEN_SHADE, FIELD_GREEN_TINT,
 )
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.ui_helpers import toggle_button
 from core.annual_flow_chart import (
     fetch_peak_flows,
@@ -167,6 +166,18 @@ if "afg_datasets" in st.session_state:
     datasets = st.session_state["afg_datasets"]
     settings = st.session_state["afg_settings"]
 
+    def _ds_name(d):
+        return d["label"] or d["station_name"] or f"Station {d['station_id']}"
+
+    color_series = []
+    for d in datasets:
+        color_series.append({"label": f"{_ds_name(d)} Peak", "color": d["peak_color"]})
+        color_series.append({"label": f"{_ds_name(d)} Avg", "color": d["avg_color"]})
+    color_overrides = render_data_color_pickers(color_series, key_prefix="afc_chart")
+    for d in datasets:
+        d["peak_color"] = color_overrides.get(f"{_ds_name(d)} Peak", d["peak_color"])
+        d["avg_color"] = color_overrides.get(f"{_ds_name(d)} Avg", d["avg_color"])
+
     fig = build_annual_flow_chart(
         datasets,
         custom_title=settings["title"],
@@ -208,5 +219,3 @@ if "afg_datasets" in st.session_state:
 else:
     st.info("Enter a station ID in the sidebar and click **Generate Chart** to get started.")
 
-st.divider()
-render_view_source(__file__)

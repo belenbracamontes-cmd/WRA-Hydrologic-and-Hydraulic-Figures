@@ -207,18 +207,27 @@ def fetch_cimis_data(app_key, station_id, begin_date, end_date, item_labels_code
     return df
 
 
-def make_plot(df, station_label, item_labels, unit_label, custom_title=""):
+DEFAULT_ITEM_COLOR = "#175536"
+
+
+def make_plot(df, station_label, item_labels, unit_label, custom_title="", colors=None):
     """One subplot per selected data item, stacked vertically and sharing
     an x-axis -- the natural layout for CIMIS's multi-parameter data
     (e.g. viewing ETo and Precipitation together), matching the stacked-
-    subplot style used elsewhere in this app."""
+    subplot style used elsewhere in this app.
+
+    colors -- optional {item_label: hex} dict overriding the default line
+        color per subplot; any label not present falls back to
+        DEFAULT_ITEM_COLOR.
+    """
+    colors = colors or {}
     n = len(item_labels)
     fig, axes = plt.subplots(n, 1, figsize=(13, 3.2 * n), sharex=True)
     if n == 1:
         axes = [axes]
 
     for ax, label in zip(axes, item_labels):
-        ax.plot(df["Date"], df[label], color="#175536", linewidth=1.4)
+        ax.plot(df["Date"], df[label], color=colors.get(label, DEFAULT_ITEM_COLOR), linewidth=1.4)
         ax.set_ylabel(label)
         ax.grid(True, alpha=0.3)
 

@@ -258,17 +258,26 @@ def geocode_place(query, limit=5):
         return []
 
 
-def make_plot(df, location_label, item_labels, unit_label, custom_title=""):
+DEFAULT_ITEM_COLOR = "#175536"
+
+
+def make_plot(df, location_label, item_labels, unit_label, custom_title="", colors=None):
     """One subplot per selected variable, stacked vertically and sharing
     an x-axis -- the same multi-parameter layout used for CIMIS weather
-    data, since PRISM is likewise inherently multi-variable."""
+    data, since PRISM is likewise inherently multi-variable.
+
+    colors -- optional {item_label: hex} dict overriding the default line
+        color per subplot; any label not present falls back to
+        DEFAULT_ITEM_COLOR.
+    """
+    colors = colors or {}
     n = len(item_labels)
     fig, axes = plt.subplots(n, 1, figsize=(13, 3.2 * n), sharex=True)
     if n == 1:
         axes = [axes]
 
     for ax, label in zip(axes, item_labels):
-        ax.plot(df["Date"], df[label], color="#175536", linewidth=1.4)
+        ax.plot(df["Date"], df[label], color=colors.get(label, DEFAULT_ITEM_COLOR), linewidth=1.4)
         ax.set_ylabel(label)
         ax.grid(True, alpha=0.3)
 

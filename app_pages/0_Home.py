@@ -9,7 +9,6 @@ allowed per run).
 import streamlit as st
 
 from core.branding import logo_path_if_present, BRAND_DARK
-from core.view_source import render_view_source
 
 REPO_URL = "https://github.com/belenbracamontes-cmd/WRA-Hydrologic-and-Hydraulic-Figures"
 
@@ -112,5 +111,3 @@ st.caption(
 )
 st.caption(f"Full source code and history: [{REPO_URL}]({REPO_URL})")
 
-st.divider()
-render_view_source(__file__, label="View source code for this page")

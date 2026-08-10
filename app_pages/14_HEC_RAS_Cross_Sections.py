@@ -20,8 +20,7 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.hecras_1d_plotter import (
     LINE_STYLES, LINE_STYLE_NAMES, WRA_COLORS,
     column_options, default_scenario_color, default_xs_column,
@@ -197,6 +196,19 @@ if "xs_df_raw" in st.session_state:
 
     if "xs_result" in st.session_state:
         r = st.session_state["xs_result"]
+
+        color_series = []
+        for spec in r["xs_specs"]:
+            color_series.append({"label": spec["elevation_label"], "color": spec["elevation_color_hex"]})
+            if spec.get("has_modification"):
+                color_series.append({"label": spec["modification_label"], "color": spec["modification_color_hex"]})
+        color_overrides = render_data_color_pickers(color_series, key_prefix="xs_chart")
+        for spec in r["xs_specs"]:
+            spec["elevation_color_hex"] = color_overrides.get(spec["elevation_label"], spec["elevation_color_hex"])
+            if spec.get("has_modification"):
+                spec["modification_color_hex"] = color_overrides.get(
+                    spec["modification_label"], spec["modification_color_hex"])
+
         xs_fig = make_cross_section_plot(xs_df_raw, r["xs_specs"], r["title"])
         first_color = r["xs_specs"][0]["elevation_color_hex"] if r["xs_specs"] else None
         axis_specs = [(xs_fig.axes[0], ["x", "y"], first_color)]
@@ -205,5 +217,3 @@ if "xs_df_raw" in st.session_state:
 else:
     st.info("Upload an Excel file above to get started.")
 
-st.divider()
-render_view_source(__file__)

@@ -26,8 +26,7 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA, OCEAN_BLUE
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.ui_helpers import toggle_button
 
 from core import daily_flow_range as dfr
@@ -226,6 +225,18 @@ with tab_dfr:
         settings = st.session_state["dfr_settings"]
         raw_data = st.session_state["dfr_raw_data"]
 
+        color_series = []
+        for d in datasets:
+            color_series.append({"label": d["label"], "color": d["color"]})
+            if d["monthly_avg"] is not None:
+                color_series.append({"label": f"{d['label']} Monthly Avg", "color": d["monthly_avg_color"]})
+        color_overrides = render_data_color_pickers(color_series, key_prefix="dfr_chart")
+        for d in datasets:
+            d["color"] = color_overrides.get(d["label"], d["color"])
+            if d["monthly_avg"] is not None:
+                d["monthly_avg_color"] = color_overrides.get(
+                    f"{d['label']} Monthly Avg", d["monthly_avg_color"])
+
         fig = dfr.make_plot(datasets, settings["wy_start"], settings["wy_end"],
                              settings["use_log"], settings["title"])
 
@@ -389,6 +400,19 @@ with tab_dh1:
 
     if "dh1_result" in st.session_state:
         r = st.session_state["dh1_result"]
+
+        color_series = []
+        if r["show_median"]:
+            color_series.append({"label": "Median (P50)", "color": r["median_color"]})
+        if r["flow"] is not None:
+            color_series.append({"label": f"{r['site_label']} year overlay", "color": r["year_color"]})
+        if r["show_monthly_avg"]:
+            color_series.append({"label": "Monthly average", "color": r["monthly_avg_color"]})
+        color_overrides = render_data_color_pickers(color_series, key_prefix="dh1_chart")
+        r["median_color"] = color_overrides.get("Median (P50)", r["median_color"])
+        r["year_color"] = color_overrides.get(f"{r['site_label']} year overlay", r["year_color"])
+        r["monthly_avg_color"] = color_overrides.get("Monthly average", r["monthly_avg_color"])
+
         fig = dh1.make_plot(
             r["pctl"], r["flow"], r["site_label"], r["year_type"], r["plot_year"],
             r["use_log"], r["palette"], r["show_median"], r["n_bands"], r["title"],
@@ -579,6 +603,19 @@ with tab_dh2:
 
     if "dh2_result" in st.session_state:
         r = st.session_state["dh2_result"]
+
+        color_series = []
+        if r["show_median"]:
+            color_series.append({"label": "Median (P50)", "color": r["median_color"]})
+        if r["flow_year"] is not None:
+            color_series.append({"label": f"{r['combined_label']} year overlay", "color": r["year_color"]})
+        if r["show_monthly_avg"]:
+            color_series.append({"label": "Monthly average", "color": r["monthly_avg_color"]})
+        color_overrides = render_data_color_pickers(color_series, key_prefix="dh2_chart")
+        r["median_color"] = color_overrides.get("Median (P50)", r["median_color"])
+        r["year_color"] = color_overrides.get(f"{r['combined_label']} year overlay", r["year_color"])
+        r["monthly_avg_color"] = color_overrides.get("Monthly average", r["monthly_avg_color"])
+
         fig = dh2.make_plot(
             r["pctl"], r["flow_year"], r["combined_label"], r["year_type"], r["plot_year"],
             r["use_log"], r["palette"], r["show_median"], r["n_bands"], r["title"],
@@ -750,6 +787,15 @@ with tab_wfd:
 
     if "wfd_result" in st.session_state:
         r = st.session_state["wfd_result"]
+
+        color_series = [{"label": r["label1"], "color": r["curve1_color"]}]
+        if r["weibull2"] is not None:
+            color_series.append({"label": r["label2"], "color": r["curve2_color"]})
+        color_overrides = render_data_color_pickers(color_series, key_prefix="wfd_chart")
+        r["curve1_color"] = color_overrides.get(r["label1"], r["curve1_color"])
+        if r["weibull2"] is not None:
+            r["curve2_color"] = color_overrides.get(r["label2"], r["curve2_color"])
+
         fig = wfd.make_plot(
             r["weibull1"], r["label1"], r["curve1_color"], r["curve1_style"],
             r["weibull2"], r["label2"], r["curve2_color"], r["curve2_style"],
@@ -913,6 +959,15 @@ with tab_wfc:
 
     if "wfc_result" in st.session_state:
         r = st.session_state["wfc_result"]
+
+        color_series = [{"label": r["combined_label"], "color": r["curve_color"]}]
+        if r["show_threshold"]:
+            color_series.append({"label": "Threshold line", "color": r["threshold_color"]})
+        color_overrides = render_data_color_pickers(color_series, key_prefix="wfc_chart")
+        r["curve_color"] = color_overrides.get(r["combined_label"], r["curve_color"])
+        if r["show_threshold"]:
+            r["threshold_color"] = color_overrides.get("Threshold line", r["threshold_color"])
+
         fig = wfc.make_plot(
             r["weibull_full"], r["combined_label"], r["start_wy"], r["end_wy"],
             r["start_month"], r["start_day"], r["end_month"], r["end_day"],
@@ -948,5 +1003,3 @@ with tab_wfc:
     else:
         st.info("Enter both station IDs above and click **Fetch & Combine Stations** to get started.")
 
-st.divider()
-render_view_source(__file__)

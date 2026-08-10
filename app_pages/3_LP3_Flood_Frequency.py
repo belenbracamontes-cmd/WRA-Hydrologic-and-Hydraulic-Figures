@@ -28,8 +28,7 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.lp3_analysis import (
     fetch_usgs_peaks,
     make_lp3_plot,
@@ -125,6 +124,16 @@ if "lp3_datasets" in st.session_state:
     datasets = st.session_state["lp3_datasets"]
     settings = st.session_state["lp3_settings"]
 
+    def _ds_name(d):
+        return d["label"] or f"Station {d['station_id']}"
+
+    color_overrides = render_data_color_pickers(
+        [{"label": _ds_name(d), "color": d["color"]} for d in datasets],
+        key_prefix="lp3_plot",
+    )
+    for d in datasets:
+        d["color"] = color_overrides.get(_ds_name(d), d["color"])
+
     fig, summary = make_lp3_plot(
         datasets,
         custom_title=settings["title"],
@@ -151,10 +160,9 @@ if "lp3_datasets" in st.session_state:
 
     table_fig = build_table_figure(summary)
     table_axis_specs = [(ax, [], None) for ax in table_fig.axes]  # no visible axis chrome (ax.axis("off"))
+    render_data_color_pickers([], key_prefix="lp3_table")  # nothing to recolor -- just the shared header
     render_chart_panel(table_fig, key_prefix="lp3_table", base_filename="lp3_design_flow_tables",
                         axis_specs=table_axis_specs, download_label="Download design-flow tables")
 else:
     st.info("Enter a station ID in the sidebar and click **Run LP3** to get started.")
 
-st.divider()
-render_view_source(__file__)

@@ -38,7 +38,6 @@ import streamlit as st
 # Makes `core.*` importable regardless of which page Streamlit runs.
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK
-from core.view_source import render_view_source
 
 # TODO: import your tool's own logic module, e.g.:
 # from core.my_new_tool import fetch_data, compute_something, make_plot
@@ -93,5 +92,3 @@ else:
     st.info("Fill in the inputs in the sidebar and click **Run** to get started.")
 
 # ── View source -- keep this at the bottom of every page ─────────────────────
-st.divider()
-render_view_source(__file__)

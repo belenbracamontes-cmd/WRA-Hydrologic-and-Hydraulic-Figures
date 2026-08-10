@@ -28,9 +28,8 @@ import pandas as pd
 import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from core.branding import logo_path_if_present, BRAND_DARK, OCEAN_BLUE_SHADE, TERRACOTA_SHADE
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.branding import logo_path_if_present, BRAND_DARK, OCEAN_BLUE_SHADE, OCEAN_BLUE_TINT, TERRACOTA_SHADE
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.noaa_station_map import fetch_all_tide_stations
 from core.noaa_tides import (
     DATUM_OPTIONS, UNITS_OPTIONS, TIMEZONE_OPTIONS, INTERVAL_OPTIONS, SOURCE_OPTIONS,
@@ -202,8 +201,20 @@ if "noaa_result" in st.session_state:
     st.caption(f"{len(df):,} rows — " +
                ", ".join(f"{status}: {count:,}" for status, count in df["status"].value_counts().items()))
 
-    fig = make_plot(df, r["station_label"], r["datum"], r["units"], r["title"])
-    axis_specs = [(fig.axes[0], ["x", "y"], OCEAN_BLUE_SHADE)]
+    has_predicted = (df["status"] == "Predicted").any()
+    has_observed = (df["status"] != "Predicted").any()
+    color_series = []
+    if has_predicted:
+        color_series.append({"label": "Predicted", "color": OCEAN_BLUE_TINT})
+    if has_observed:
+        color_series.append({"label": "Observed (verified/preliminary)", "color": OCEAN_BLUE_SHADE})
+    color_overrides = render_data_color_pickers(color_series, key_prefix="noaa_chart")
+    predicted_color = color_overrides.get("Predicted", OCEAN_BLUE_TINT)
+    observed_color = color_overrides.get("Observed (verified/preliminary)", OCEAN_BLUE_SHADE)
+
+    fig = make_plot(df, r["station_label"], r["datum"], r["units"], r["title"],
+                     predicted_color=predicted_color, observed_color=observed_color)
+    axis_specs = [(fig.axes[0], ["x", "y"], observed_color)]
     render_chart_panel(fig, key_prefix="noaa_chart", base_filename=f"noaa_tides_{r['station_id']}",
                         axis_specs=axis_specs)
 
@@ -231,5 +242,3 @@ if "noaa_result" in st.session_state:
 else:
     st.info("Enter a station ID and date range above, then click **Fetch Data** to get started.")
 
-st.divider()
-render_view_source(__file__)

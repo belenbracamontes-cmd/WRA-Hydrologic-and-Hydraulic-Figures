@@ -130,11 +130,43 @@ PLOT_BG_PRESETS = {
 EXPORT_BG_OPTIONS = ["Transparent", "Normal"]
 
 
+def render_data_color_pickers(series, key_prefix):
+    """The first half of the "Customize & export" block: one color picker
+    per named, actually-plotted data series (the bars/lines themselves --
+    not chrome). Always call this BEFORE building the figure (the chosen
+    colors need to feed into make_plot()/build_..._chart(), not be painted
+    on after the fact) and pass its return value into whatever spec/
+    dataset structure the page uses to build the chart, every rerun --
+    not just when a "Generate"/"Fetch" button is freshly clicked -- so a
+    color change alone re-plots live without waiting on a new data fetch.
+
+    series -- list of {"label": str, "color": "#RRGGBB"} dicts, the
+        current/default color for each recolorable series. Pass [] if a
+        chart has nothing plotted that has its own color (e.g. a plain
+        table image) -- the header still renders for a consistent look.
+    Returns {label: chosen_hex}, defaulting to each entry's given color
+    until the user changes it.
+    """
+    st.subheader("🎨 Customize & export")
+    chosen = {}
+    if series:
+        st.caption("Data colors")
+        cols = st.columns(min(4, len(series)))
+        for i, s in enumerate(series):
+            with cols[i % len(cols)]:
+                chosen[s["label"]] = st.color_picker(
+                    s["label"], s["color"], key=f"{key_prefix}_datacolor_{i}"
+                )
+    return chosen
+
+
 def render_chart_panel(fig, key_prefix, base_filename, axis_specs,
                         default_annotation_index=1, download_label="Download chart"):
-    """The one consolidated "customize & export" block every chart uses --
-    size, annotation color, plot-area background, and export background/
-    download all grouped together, with exactly one st.pyplot(fig) call.
+    """The second half of the "Customize & export" block every chart uses
+    -- size, annotation color, plot-area background, and export
+    background/download all grouped together, with exactly one
+    st.pyplot(fig) call. Call render_data_color_pickers() first (it owns
+    this section's header) if the chart has any data colors to expose.
 
     axis_specs -- same shape restyle_annotations() expects: a list of
         (ax, sides, series_color) tuples built from fig.axes right after
@@ -142,8 +174,6 @@ def render_chart_panel(fig, key_prefix, base_filename, axis_specs,
         single-axis, "match series color" support -- so it stays the
         caller's responsibility, same as before this function existed).
     """
-    st.subheader("🎨 Customize & export")
-
     native_w, native_h = fig.get_size_inches()
     size_options = {f"Current ({native_w:.1f} × {native_h:.1f} in)": (native_w, native_h)}
     size_options.update(SIZE_PRESETS)

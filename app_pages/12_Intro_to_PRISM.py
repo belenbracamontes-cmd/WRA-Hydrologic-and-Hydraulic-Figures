@@ -26,7 +26,6 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, CALIFORNIA_SUNSET
-from core.view_source import render_view_source
 from core.click_map import render_click_map
 from core.prism_data import (
     CONUS_BOUNDS, in_conus, fetch_location_info, fetch_climate_normals, geocode_place,
@@ -205,5 +204,3 @@ else:
                 except Exception as e:
                     st.caption(f"Couldn't load climate info for this point: {e}")
 
-st.divider()
-render_view_source(__file__)

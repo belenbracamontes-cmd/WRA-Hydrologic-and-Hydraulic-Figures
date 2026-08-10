@@ -44,7 +44,6 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA, TERRACOTA_SHADE
-from core.view_source import render_view_source
 from core.usgs_station_map import fetch_all_active_streamgages, hex_to_rgba, STATE_NAMES
 
 logo = logo_path_if_present()
@@ -279,5 +278,3 @@ else:
                     st.session_state["usgs_selected"] = [s for s in selected_site_nos if s != site_no]
                     st.rerun()
 
-st.divider()
-render_view_source(__file__)

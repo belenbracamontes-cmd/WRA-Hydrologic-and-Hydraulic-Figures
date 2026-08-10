@@ -33,7 +33,6 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, FIELD_GREEN, FIELD_GREEN_SHADE
-from core.view_source import render_view_source
 from core.cimis_stations import fetch_all_cimis_stations, hex_to_rgba
 
 logo = logo_path_if_present()
@@ -248,5 +247,3 @@ else:
                     st.session_state["cimis_map_selected"] = [s for s in selected_ids if s != station_id]
                     st.rerun()
 
-st.divider()
-render_view_source(__file__)

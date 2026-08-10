@@ -287,7 +287,8 @@ def fetch_tide_data(station, begin_date, end_date, datum, units, time_zone, inte
     return combined[["date", "time", "water_level", "status"]]
 
 
-def make_plot(df, station_label, datum, units, custom_title=""):
+def make_plot(df, station_label, datum, units, custom_title="",
+              predicted_color=OCEAN_BLUE_TINT, observed_color=OCEAN_BLUE_SHADE):
     """Build the water-level time series plot.
 
     df must have the columns returned by fetch_tide_data (date, time,
@@ -302,10 +303,10 @@ def make_plot(df, station_label, datum, units, custom_title=""):
     fig, ax = plt.subplots(figsize=(13, 6))
 
     if not predicted.empty:
-        ax.plot(predicted["dt"], predicted["water_level"], color=OCEAN_BLUE_TINT,
+        ax.plot(predicted["dt"], predicted["water_level"], color=predicted_color,
                  linestyle="--", linewidth=1.3, label="Predicted", zorder=1)
     if not observed.empty:
-        ax.plot(observed["dt"], observed["water_level"], color=OCEAN_BLUE_SHADE,
+        ax.plot(observed["dt"], observed["water_level"], color=observed_color,
                  linewidth=1.5, label="Observed (verified/preliminary)", zorder=2)
 
     unit_label = "ft" if units == "english" else "m"

@@ -24,8 +24,7 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, FIELD_GREEN_SHADE
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.cimis_stations import fetch_all_cimis_stations
 from core.cimis_data import (
     DAILY_DATA_ITEMS, HOURLY_DATA_ITEMS, UNITS_OPTIONS, SCOPE_OPTIONS, QC_FLAG_MEANINGS,
@@ -228,8 +227,14 @@ if "cimis_result" in st.session_state:
     st.subheader(f"📈 {r['station_label']} (Station {r['station_id']})")
     st.caption(f"{len(df):,} rows — {r['scope'].capitalize()}, {unit_label} units")
 
-    fig = make_plot(df, r["station_label"], r["item_labels"], unit_label, r["title"])
-    axis_specs = [(ax, ["x", "y"], FIELD_GREEN_SHADE) for ax in fig.axes]
+    color_overrides = render_data_color_pickers(
+        [{"label": label, "color": FIELD_GREEN_SHADE} for label in r["item_labels"]],
+        key_prefix="cimis_chart",
+    )
+    fig = make_plot(df, r["station_label"], r["item_labels"], unit_label, r["title"],
+                     colors=color_overrides)
+    axis_specs = [(ax, ["x", "y"], color_overrides.get(label, FIELD_GREEN_SHADE))
+                   for ax, label in zip(fig.axes, r["item_labels"])]
     render_chart_panel(fig, key_prefix="cimis_chart", base_filename=f"cimis_{r['station_id']}",
                         axis_specs=axis_specs)
 
@@ -261,5 +266,3 @@ else:
     st.info("Enter your appKey, pick a station and date range above, then click **Fetch Data** "
              "to get started.")
 
-st.divider()
-render_view_source(__file__)

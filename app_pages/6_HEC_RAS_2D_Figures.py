@@ -26,8 +26,7 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.hecras_2d_timeseries import (
     SERIES_TYPES, SERIES_ICONS, VEL_TYPES, LEVEL_TYPES,
     LINE_STYLES, LINE_STYLE_NAMES, WRA_COLORS,
@@ -177,6 +176,16 @@ if "hec2d_df_raw" in st.session_state:
 
     if "hec2d_result" in st.session_state:
         r = st.session_state["hec2d_result"]
+
+        color_overrides = render_data_color_pickers(
+            [{"label": s["label"], "color": s["color_hex"]}
+             for sc in r["scenario_specs"] for s in sc["series"]],
+            key_prefix="hec2d_chart",
+        )
+        for sc in r["scenario_specs"]:
+            for s in sc["series"]:
+                s["color_hex"] = color_overrides.get(s["label"], s["color_hex"])
+
         fig = make_plot(df_raw, r["scenario_specs"], r["title"])
 
         all_series = [s for sc in r["scenario_specs"] for s in sc["series"]]
@@ -197,5 +206,3 @@ if "hec2d_df_raw" in st.session_state:
 else:
     st.info("Upload an Excel file above to get started.")
 
-st.divider()
-render_view_source(__file__)

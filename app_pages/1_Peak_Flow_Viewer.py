@@ -26,8 +26,7 @@ from core.peak_flow import (
     return_period_table,
     full_record_table,
 )
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.ui_helpers import toggle_button
 
 
@@ -119,6 +118,16 @@ if "pf_datasets" in st.session_state:
     datasets = st.session_state["pf_datasets"]
     settings = st.session_state["pf_settings"]
 
+    def _ds_name(d):
+        return d["label"] or f"Station {d['station_id']}"
+
+    color_overrides = render_data_color_pickers(
+        [{"label": _ds_name(d), "color": d["base_color"]} for d in datasets],
+        key_prefix="pfv_chart",
+    )
+    for d in datasets:
+        d["base_color"] = color_overrides.get(_ds_name(d), d["base_color"])
+
     fig = make_plot(
         datasets,
         settings["use_log"],
@@ -162,5 +171,3 @@ if "pf_datasets" in st.session_state:
 else:
     st.info("Enter a station ID in the sidebar and click **Run** to get started.")
 
-st.divider()
-render_view_source(__file__)

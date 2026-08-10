@@ -28,7 +28,6 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, TERRACOTA, TERRACOTA_SHADE
-from core.view_source import render_view_source
 from core.noaa_station_map import fetch_all_tide_stations, hex_to_rgba
 
 logo = logo_path_if_present()
@@ -237,5 +236,3 @@ else:
                     st.session_state["noaa_map_selected"] = [s for s in selected_ids if s != station_id]
                     st.rerun()
 
-st.divider()
-render_view_source(__file__)

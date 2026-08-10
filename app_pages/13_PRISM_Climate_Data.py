@@ -21,8 +21,7 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, CALIFORNIA_SUNSET_SHADE
-from core.view_source import render_view_source
-from core.style_options import render_chart_panel
+from core.style_options import render_chart_panel, render_data_color_pickers
 from core.prism_data import (
     VARIABLES, RANGE_OPTIONS, UNITS_OPTIONS, RESOLUTION_OPTIONS,
     in_conus, fetch_location_info, fetch_prism_timeseries, make_plot,
@@ -175,8 +174,14 @@ if "prism_result" in st.session_state:
     st.subheader(f"📈 {r['location_label']} ({r['lat']:.4f}, {r['lon']:.4f})")
     st.caption(f"{len(df):,} rows — {range_label}, {unit_label} units")
 
-    fig = make_plot(df, r["location_label"], r["item_labels"], unit_label, r["title"])
-    axis_specs = [(ax, ["x", "y"], CALIFORNIA_SUNSET_SHADE) for ax in fig.axes]
+    color_overrides = render_data_color_pickers(
+        [{"label": label, "color": CALIFORNIA_SUNSET_SHADE} for label in r["item_labels"]],
+        key_prefix="prism_chart",
+    )
+    fig = make_plot(df, r["location_label"], r["item_labels"], unit_label, r["title"],
+                     colors=color_overrides)
+    axis_specs = [(ax, ["x", "y"], color_overrides.get(label, CALIFORNIA_SUNSET_SHADE))
+                   for ax, label in zip(fig.axes, r["item_labels"])]
     render_chart_panel(fig, key_prefix="prism_chart",
                         base_filename=f"prism_{r['lat']:.4f}_{r['lon']:.4f}", axis_specs=axis_specs)
 
@@ -201,5 +206,3 @@ if "prism_result" in st.session_state:
 else:
     st.info("Pick a location and date range above, then click **Fetch Data** to get started.")
 
-st.divider()
-render_view_source(__file__)
