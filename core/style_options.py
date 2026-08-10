@@ -27,7 +27,13 @@ from core.branding import (
     MOSS_GREEN_SHADE,
     FIELD_GREEN_SHADE,
     OCEAN_BLUE_SHADE,
+    WRA_COLOR_OPTIONS,
 )
+
+# Name <-> hex lookups for the "pick a WRA color" dropdown in
+# render_data_color_pickers() below.
+_WRA_NAME_TO_HEX = dict(WRA_COLOR_OPTIONS)
+_WRA_HEX_TO_NAME = {hex_.upper(): name for name, hex_ in WRA_COLOR_OPTIONS}
 
 MATCH_SERIES = "Match axis color to its data series"
 
@@ -130,8 +136,47 @@ PLOT_BG_PRESETS = {
 EXPORT_BG_OPTIONS = ["Transparent", "Normal"]
 
 
+def _render_color_choice(label, default_hex, key_prefix):
+    """One graph-color control: a dropdown of named WRA brand colors by
+    default, with a switch next to it to pick any custom hex color
+    instead (a plain st.color_picker, same widget used everywhere else
+    in the app).
+    """
+    use_hex_key = f"{key_prefix}_use_hex"
+    if use_hex_key not in st.session_state:
+        # Default to hex mode when the incoming color isn't itself a named
+        # WRA swatch (e.g. the black/white overlay colors used elsewhere in
+        # the app) -- otherwise default to the WRA dropdown.
+        st.session_state[use_hex_key] = default_hex.upper() not in _WRA_HEX_TO_NAME
+
+    col_picker, col_switch = st.columns([4, 1])
+    with col_switch:
+        use_hex = st.toggle("Hex", key=use_hex_key,
+                             help="Pick any custom hex color instead of a WRA brand color.")
+    with col_picker:
+        if use_hex:
+            chosen = st.color_picker(label, default_hex, key=f"{key_prefix}_hex")
+        else:
+            names = list(_WRA_NAME_TO_HEX.keys())
+            name_key = f"{key_prefix}_name"
+            if name_key not in st.session_state:
+                st.session_state[name_key] = _WRA_HEX_TO_NAME.get(default_hex.upper(), names[0])
+            picked_name = st.selectbox(
+                label, names, key=name_key,
+                format_func=lambda n: f"{n} ({_WRA_NAME_TO_HEX[n]})",
+            )
+            chosen = _WRA_NAME_TO_HEX[picked_name]
+
+    st.markdown(
+        f'<div style="height:8px;border-radius:4px;margin-top:-6px;'
+        f'background:{chosen};border:1px solid rgba(0,0,0,0.15);"></div>',
+        unsafe_allow_html=True,
+    )
+    return chosen
+
+
 def render_data_color_pickers(series, key_prefix):
-    """The first half of the "Customize & export" block: one color picker
+    """The first half of the "Customize & export" block: one color control
     per named, actually-plotted data series (the bars/lines themselves --
     not chrome). Always call this BEFORE building the figure (the chosen
     colors need to feed into make_plot()/build_..._chart(), not be painted
@@ -150,13 +195,11 @@ def render_data_color_pickers(series, key_prefix):
     st.subheader("🎨 Customize & export")
     chosen = {}
     if series:
-        st.caption("Data colors")
-        cols = st.columns(min(4, len(series)))
+        st.caption("Data colors — pick a WRA brand color, or flip \"Hex\" for any custom color")
         for i, s in enumerate(series):
-            with cols[i % len(cols)]:
-                chosen[s["label"]] = st.color_picker(
-                    s["label"], s["color"], key=f"{key_prefix}_datacolor_{i}"
-                )
+            chosen[s["label"]] = _render_color_choice(
+                s["label"], s["color"], f"{key_prefix}_datacolor_{i}"
+            )
     return chosen
 
 

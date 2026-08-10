@@ -2,7 +2,8 @@
 
 Ported from a tkinter/ipywidgets notebook GUI (WRA -- Riverscapes &
 Shorelines Team). Differences from the notebook version:
-  - Sidebar widgets replace ipywidgets controls.
+  - Inputs live in the main body (numbered sections), matching the layout
+    convention every other tool page in the app uses -- not a sidebar.
   - "Generate Chart" fetches + caches USGS data in session_state so tweaking
     display options doesn't re-hit the network.
   - The tkinter "Save SVG" file-dialog button is replaced with a browser
@@ -67,47 +68,58 @@ with col_title:
     )
     st.caption("Dual-axis grouped bar chart (Balance Hydrologics \"Figure 3\" style), pulled live from USGS.")
 
-with st.sidebar:
-    st.header("Station 1")
-    s1_id = st.text_input("Station ID", value="11164500", key="afg_s1_id")
+st.divider()
+st.subheader("1. Station(s)")
+
+c1, c2, c3, c4 = st.columns(4)
+with c1:
+    s1_id = st.text_input("Station 1 ID", value="11164500", key="afg_s1_id")
+with c2:
     s1_peak_color = st.color_picker("Peak color", WRA_PEAK_BLUE, key="afg_s1_peak_color")
+with c3:
     s1_avg_color = st.color_picker("Avg color", WRA_AVG_CYAN, key="afg_s1_avg_color")
+with c4:
     s1_label = st.text_input("Label (optional)", key="afg_s1_label",
                               placeholder="e.g. San Francisquito Ck")
 
-    st.divider()
-    compare = toggle_button("+ Compare a second station", "− Remove second station",
-                             key="afg_compare")
-    s2_id, s2_peak_color, s2_avg_color, s2_label = "", FIELD_GREEN_SHADE, FIELD_GREEN_TINT, ""
-    if compare:
-        st.subheader("Station 2")
-        s2_id = st.text_input("Station ID", placeholder="e.g. 11143000", key="afg_s2_id")
+compare = toggle_button("+ Compare a second station", "− Remove second station",
+                         key="afg_compare")
+s2_id, s2_peak_color, s2_avg_color, s2_label = "", FIELD_GREEN_SHADE, FIELD_GREEN_TINT, ""
+if compare:
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        s2_id = st.text_input("Station 2 ID", placeholder="e.g. 11143000", key="afg_s2_id")
+    with c2:
         s2_peak_color = st.color_picker("Peak color", FIELD_GREEN_SHADE, key="afg_s2_peak_color")
+    with c3:
         s2_avg_color = st.color_picker("Avg color", FIELD_GREEN_TINT, key="afg_s2_avg_color")
+    with c4:
         s2_label = st.text_input("Label (optional)", key="afg_s2_label",
                                   placeholder="Station 2 name")
 
-    st.divider()
-    custom_range = st.checkbox(
-        "Customize water year range (default: show all available data)",
-        key="afg_custom_range",
-    )
-    start_wy, end_wy = 1900, _CURRENT_YEAR + 1
-    if custom_range:
-        c1, c2 = st.columns(2)
-        with c1:
-            start_wy = st.number_input("Start WY", min_value=1900, max_value=2100,
-                                       value=1900, key="afg_start_wy")
-        with c2:
-            end_wy = st.number_input("End WY", min_value=1900, max_value=2100,
-                                     value=_CURRENT_YEAR + 1, key="afg_end_wy")
+st.subheader("2. Options")
+custom_range = st.checkbox(
+    "Customize water year range (default: show all available data)",
+    key="afg_custom_range",
+)
+start_wy, end_wy = 1900, _CURRENT_YEAR + 1
+if custom_range:
+    c1, c2 = st.columns(2)
+    with c1:
+        start_wy = st.number_input("Start WY", min_value=1900, max_value=2100,
+                                   value=1900, key="afg_start_wy")
+    with c2:
+        end_wy = st.number_input("End WY", min_value=1900, max_value=2100,
+                                 value=_CURRENT_YEAR + 1, key="afg_end_wy")
 
-    st.divider()
+c1, c2 = st.columns(2)
+with c1:
     title = st.text_input("Title (optional)", key="afg_title",
                           placeholder="e.g. San Francisquito Creek at Stanford")
+with c2:
     org = st.text_input("Organization", value="WRA, Inc.", key="afg_org")
 
-    run = st.button("Generate Chart", type="primary", use_container_width=True)
+run = st.button("Generate Chart", type="primary")
 
 if run:
     if not s1_id.strip():
@@ -217,5 +229,5 @@ if "afg_datasets" in st.session_state:
                 key=f"csv_{d['station_id']}",
             )
 else:
-    st.info("Enter a station ID in the sidebar and click **Generate Chart** to get started.")
+    st.info("Enter a station ID above and click **Generate Chart** to get started.")
 

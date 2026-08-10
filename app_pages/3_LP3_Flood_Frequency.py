@@ -6,7 +6,8 @@ in core/lp3_analysis.py are unchanged from the original -- only the GUI
 layer and file-save mechanism were converted.
 
 Differences from the notebook version:
-  - Sidebar widgets replace ipywidgets controls.
+  - Inputs live in the main body (numbered sections), matching the layout
+    convention every other tool page in the app uses -- not a sidebar.
   - Single-station only -- no second-station comparison.
   - Design return periods are no longer user-selectable; every run tabulates
     the full standard set through 1000-yr (see core.lp3_analysis.RP_ALL).
@@ -57,29 +58,33 @@ with col_title:
     )
     st.caption("Bulletin 17C / standard LP3 method. Produces a probability plot matching USGS Peakfq / Figure 10-13 style.")
 
-with st.sidebar:
-    st.header("Station")
+st.divider()
+st.subheader("1. Station")
+
+c1, c2, c3 = st.columns(3)
+with c1:
     s1_id = st.text_input("Station ID", placeholder="e.g. 11113000", key="lp3_s1_id")
+with c2:
     s1_color = st.color_picker("Color", TERRACOTA, key="lp3_s1_color")
+with c3:
     s1_label = st.text_input("Label (optional)", key="lp3_s1_label",
                               placeholder="Station name")
 
-    st.divider()
-    title = st.text_input("Title (optional)", key="lp3_title",
-                          placeholder="e.g. Arkansas R. at Pueblo State Park")
-    show_ci = st.checkbox("Show 2.5%/97.5% confidence limits", value=True, key="lp3_show_ci")
+st.subheader("2. Options")
+title = st.text_input("Title (optional)", key="lp3_title",
+                      placeholder="e.g. Arkansas R. at Pueblo State Park")
+show_ci = st.checkbox("Show 2.5%/97.5% confidence limits", value=True, key="lp3_show_ci")
 
-    st.divider()
-    custom_years = st.checkbox("Water years to consider (optional)", key="lp3_custom_years")
-    year_range = None
-    if custom_years:
-        year_range = st.slider(
-            "Water year range", min_value=1900, max_value=_CURRENT_YEAR + 1,
-            value=(1900, _CURRENT_YEAR + 1), key="lp3_year_range",
-        )
-        st.caption("Only peak flows within this range are used in the LP3 fit.")
+custom_years = st.checkbox("Water years to consider (optional)", key="lp3_custom_years")
+year_range = None
+if custom_years:
+    year_range = st.slider(
+        "Water year range", min_value=1900, max_value=_CURRENT_YEAR + 1,
+        value=(1900, _CURRENT_YEAR + 1), key="lp3_year_range",
+    )
+    st.caption("Only peak flows within this range are used in the LP3 fit.")
 
-    run = st.button("Run LP3", type="primary", use_container_width=True)
+run = st.button("Run LP3", type="primary")
 
 if run:
     if not s1_id.strip():
@@ -164,5 +169,5 @@ if "lp3_datasets" in st.session_state:
     render_chart_panel(table_fig, key_prefix="lp3_table", base_filename="lp3_design_flow_tables",
                         axis_specs=table_axis_specs, download_label="Download design-flow tables")
 else:
-    st.info("Enter a station ID in the sidebar and click **Run LP3** to get started.")
+    st.info("Enter a station ID above and click **Run LP3** to get started.")
 

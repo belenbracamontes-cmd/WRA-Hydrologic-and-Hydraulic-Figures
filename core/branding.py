@@ -42,6 +42,32 @@ WARMER_CREAM       = "#FFEACE"
 DARK_BROWN         = "#421B03"
 BODY_COPY          = "#2D1603"
 
+# Every named brand swatch above, flattened into one (name, hex) list -- feeds
+# the "pick a WRA color" dropdowns in core/style_options.py's Customize &
+# export panel, so users can choose a named brand color instead of typing/
+# picking a raw hex value (a hex option is still offered alongside it there).
+WRA_COLOR_OPTIONS = [
+    ("Terracota", TERRACOTA),
+    ("Terracota Shade", TERRACOTA_SHADE),
+    ("Terracota Tint", TERRACOTA_TINT),
+    ("California Sunset", CALIFORNIA_SUNSET),
+    ("California Sunset Shade", CALIFORNIA_SUNSET_SHADE),
+    ("California Sunset Tint", CALIFORNIA_SUNSET_TINT),
+    ("Moss Green", MOSS_GREEN),
+    ("Moss Green Shade", MOSS_GREEN_SHADE),
+    ("Moss Green Tint", MOSS_GREEN_TINT),
+    ("Field Green", FIELD_GREEN),
+    ("Field Green Shade", FIELD_GREEN_SHADE),
+    ("Field Green Tint", FIELD_GREEN_TINT),
+    ("Ocean Blue", OCEAN_BLUE),
+    ("Ocean Blue Shade", OCEAN_BLUE_SHADE),
+    ("Ocean Blue Tint", OCEAN_BLUE_TINT),
+    ("Neutral Background", NEUTRAL_BACKGROUND),
+    ("Warmer Cream", WARMER_CREAM),
+    ("Dark Brown", DARK_BROWN),
+    ("Body Copy", BODY_COPY),
+]
+
 # Title/heading color used across every page -- sampled directly from the
 # logo wordmark, which matches TERRACOTA_SHADE.
 BRAND_DARK = TERRACOTA_SHADE

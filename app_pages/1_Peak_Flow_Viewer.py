@@ -2,7 +2,8 @@
 
 Ported from the original ipywidgets GUI. Differences from the notebook
 version:
-  - Sidebar widgets replace ipywidgets controls.
+  - Inputs live in the main body (numbered sections), matching the layout
+    convention every other tool page in the app uses -- not a sidebar.
   - "Run" fetches + caches USGS data in session_state so tweaking display
     options (log scale, break point, panel ratio) doesn't re-hit the network.
   - The tkinter "Save SVG" file-dialog button is replaced with a browser
@@ -47,34 +48,45 @@ with col_title:
     )
     st.caption("USGS annual peak-flow bar chart with return-period bands.")
 
-with st.sidebar:
-    st.header("Station 1")
-    s1_id = st.text_input("Station ID", placeholder="e.g. 11113000", key="s1_id")
+st.divider()
+st.subheader("1. Station(s)")
+
+c1, c2, c3 = st.columns(3)
+with c1:
+    s1_id = st.text_input("Station 1 ID", placeholder="e.g. 11113000", key="s1_id")
+with c2:
     s1_color = st.color_picker("Color", TERRACOTA, key="s1_color")
+with c3:
     s1_label = st.text_input("Label (optional)", key="s1_label",
                               placeholder="Station 1 name")
 
-    st.divider()
-    compare = toggle_button("+ Compare a second station", "− Remove second station",
-                             key="compare")
-    s2_id, s2_color, s2_label = "", OCEAN_BLUE, ""
-    if compare:
-        st.subheader("Station 2")
-        s2_id = st.text_input("Station ID", placeholder="e.g. 11109000", key="s2_id")
+compare = toggle_button("+ Compare a second station", "− Remove second station",
+                         key="compare")
+s2_id, s2_color, s2_label = "", OCEAN_BLUE, ""
+if compare:
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        s2_id = st.text_input("Station 2 ID", placeholder="e.g. 11109000", key="s2_id")
+    with c2:
         s2_color = st.color_picker("Color", OCEAN_BLUE, key="s2_color")
+    with c3:
         s2_label = st.text_input("Label (optional)", key="s2_label",
                                   placeholder="Station 2 name")
 
-    st.divider()
-    title = st.text_input("Chart title (optional)", key="chart_title",
-                           placeholder="e.g. Santa Ynez River at Baptism Creek")
+st.subheader("2. Options")
+title = st.text_input("Chart title (optional)", key="chart_title",
+                       placeholder="e.g. Santa Ynez River at Baptism Creek")
+c1, c2, c3 = st.columns(3)
+with c1:
     use_log = st.checkbox("Log scale (bottom panel)", value=True, key="use_log")
+with c2:
     break_val = st.slider("Break point (cfs)", 1000, 100000, 15000, step=1000,
                           key="break_val")
+with c3:
     axis_ratio = st.slider("Top panel share", 0.1, 0.9, 0.6, step=0.05,
                            key="axis_ratio")
 
-    run = st.button("Run", type="primary", use_container_width=True)
+run = st.button("Run", type="primary")
 
 if run:
     if not s1_id.strip():
@@ -169,5 +181,5 @@ if "pf_datasets" in st.session_state:
                 key=f"csv_{d['station_id']}",
             )
 else:
-    st.info("Enter a station ID in the sidebar and click **Run** to get started.")
+    st.info("Enter a station ID above and click **Run** to get started.")
 
