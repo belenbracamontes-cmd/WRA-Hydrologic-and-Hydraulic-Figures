@@ -78,7 +78,7 @@ title = st.text_input("Title (optional)", key="lp3_title",
                       placeholder="e.g. Arkansas R. at Pueblo State Park")
 show_ci = st.checkbox("Show 2.5%/97.5% confidence limits", value=True, key="lp3_show_ci")
 
-custom_years = st.checkbox("Water years to consider (optional)", key="lp3_custom_years")
+custom_years = st.toggle("Water years to consider (optional)", key="lp3_custom_years")
 year_range = None
 if custom_years:
     year_range = st.slider(

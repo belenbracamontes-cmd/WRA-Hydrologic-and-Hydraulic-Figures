@@ -131,18 +131,15 @@ with tab_dfr:
         with c4:
             dfr_s2_label = st.text_input("Label (optional)", key="dfr_s2_label", placeholder="Station 2 name")
 
-    dfr_custom_years = st.checkbox(
-        "Specify water year range (uncheck to use all available data)", key="dfr_custom_years",
+    dfr_custom_years = st.toggle(
+        "Specify water year range (turn off to use all available data)", key="dfr_custom_years",
     )
     dfr_wy_start, dfr_wy_end = 1991, _CURRENT_YEAR
     if dfr_custom_years:
-        c1, c2 = st.columns(2)
-        with c1:
-            dfr_wy_start = st.number_input("History start (WY)", min_value=1900, max_value=_CURRENT_YEAR + 1,
-                                            value=1991, key="dfr_wy_start")
-        with c2:
-            dfr_wy_end = st.number_input("End water year", min_value=1900, max_value=_CURRENT_YEAR + 1,
-                                          value=_CURRENT_YEAR, key="dfr_wy_end")
+        dfr_wy_start, dfr_wy_end = st.slider(
+            "Water year range", min_value=1900, max_value=_CURRENT_YEAR + 1,
+            value=(1991, _CURRENT_YEAR), key="dfr_year_range",
+        )
 
     c1, c2 = st.columns(2)
     with c1:
@@ -320,18 +317,15 @@ with tab_dh1:
                                                   format_func=lambda v: {"-": "Solid", "--": "Dashed",
                                                                           "-.": "Dash-dot", ":": "Dotted"}[v])
 
-    dh1_custom_years = st.checkbox(
+    dh1_custom_years = st.toggle(
         "Specify years for historical percentiles (default: full period of record)", key="dh1_custom_years",
     )
     dh1_hist_start, dh1_hist_end = 1990, _CURRENT_YEAR
     if dh1_custom_years:
-        c1, c2 = st.columns(2)
-        with c1:
-            dh1_hist_start = st.number_input("History start", min_value=1900, max_value=_CURRENT_YEAR + 1,
-                                              value=1990, key="dh1_hist_start")
-        with c2:
-            dh1_hist_end = st.number_input("History end", min_value=1900, max_value=_CURRENT_YEAR + 1,
-                                            value=_CURRENT_YEAR, key="dh1_hist_end")
+        dh1_hist_start, dh1_hist_end = st.slider(
+            "Historical percentile years", min_value=1900, max_value=_CURRENT_YEAR + 1,
+            value=(1990, _CURRENT_YEAR), key="dh1_hist_range",
+        )
 
     dh1_title = st.text_input("Title (optional)", key="dh1_title",
                                placeholder="e.g. Streamflow Percentiles - Site 11169500")
@@ -506,18 +500,15 @@ with tab_dh2:
                                                   format_func=lambda v: {"-": "Solid", "--": "Dashed",
                                                                           "-.": "Dash-dot", ":": "Dotted"}[v])
 
-    dh2_custom_years = st.checkbox(
+    dh2_custom_years = st.toggle(
         "Specify water years for historical percentiles (default: full overlapping record)", key="dh2_custom_years",
     )
     dh2_hist_start, dh2_hist_end = 1990, _CURRENT_YEAR
     if dh2_custom_years:
-        c1, c2 = st.columns(2)
-        with c1:
-            dh2_hist_start = st.number_input("History start (WY)", min_value=1900, max_value=_CURRENT_YEAR + 1,
-                                              value=1990, key="dh2_hist_start")
-        with c2:
-            dh2_hist_end = st.number_input("History end (WY)", min_value=1900, max_value=_CURRENT_YEAR + 1,
-                                            value=_CURRENT_YEAR, key="dh2_hist_end")
+        dh2_hist_start, dh2_hist_end = st.slider(
+            "Historical percentile water years", min_value=1900, max_value=_CURRENT_YEAR + 1,
+            value=(1990, _CURRENT_YEAR), key="dh2_hist_range",
+        )
 
     dh2_title = st.text_input("Title (optional)", key="dh2_title",
                                placeholder="e.g. Combined Streamflow Percentiles")

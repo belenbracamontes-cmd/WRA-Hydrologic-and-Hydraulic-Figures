@@ -95,19 +95,16 @@ if compare:
                                   placeholder="Station 2 name")
 
 st.subheader("2. Options")
-custom_range = st.checkbox(
+custom_range = st.toggle(
     "Customize water year range (default: show all available data)",
     key="afg_custom_range",
 )
 start_wy, end_wy = 1900, _CURRENT_YEAR + 1
 if custom_range:
-    c1, c2 = st.columns(2)
-    with c1:
-        start_wy = st.number_input("Start WY", min_value=1900, max_value=2100,
-                                   value=1900, key="afg_start_wy")
-    with c2:
-        end_wy = st.number_input("End WY", min_value=1900, max_value=2100,
-                                 value=_CURRENT_YEAR + 1, key="afg_end_wy")
+    start_wy, end_wy = st.slider(
+        "Water year range", min_value=1900, max_value=2100,
+        value=(1900, _CURRENT_YEAR + 1), key="afg_year_range",
+    )
 
 c1, c2 = st.columns(2)
 with c1:

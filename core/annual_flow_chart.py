@@ -222,9 +222,10 @@ def summary_table(datasets):
 
 def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organization="WRA, Inc."):
     """
-    Build a Balance Hydrologics-style dual-axis grouped bar chart.
-    Supports 1 or 2 stations. Returns the matplotlib Figure (does not call
-    plt.show()).
+    Build a Balance Hydrologics-style dual-axis bar chart: a wide "Annual
+    Peak Flow" bar per water year with a narrower "Annual Average Flow" bar
+    drawn directly on top of it (overlapping, not side by side). Supports 1
+    or 2 stations. Returns the matplotlib Figure (does not call plt.show()).
 
     datasets -- list of dicts, one per station:
         peak_df, avg_df, station_id, station_name, peak_color, avg_color, label
@@ -240,16 +241,23 @@ def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organizati
     total_bars = n_stations
     group_width = 0.72
     slot_w = group_width / total_bars
-    peak_w = slot_w * 0.45
-    avg_w = slot_w * 1.05
+    # Peak is the wide "background" bar; Average is the narrower bar drawn
+    # directly on top of it at the same x position, so the two visibly
+    # overlap instead of sitting side by side.
+    peak_w = slot_w * 1.05
+    avg_w = slot_w * 0.45
 
     fig, ax1 = plt.subplots(figsize=(16, 7))
     fig.patch.set_facecolor(WRA_WHITE)
     ax1.set_facecolor(WRA_WHITE)
     ax2 = ax1.twinx()
 
-    ax1.set_zorder(ax2.get_zorder() + 1)
-    ax1.patch.set_visible(False)
+    # ax2 (average) sits in FRONT of ax1 (peak) so its bars draw on top of
+    # the peak bars -- axes-level zorder governs stacking ACROSS twinned
+    # axes; a bar's own zorder only matters relative to other artists
+    # within that same axes.
+    ax2.set_zorder(ax1.get_zorder() + 1)
+    ax2.patch.set_visible(False)
 
     all_peak_vals, all_avg_vals = [], []
 
@@ -267,20 +275,20 @@ def build_annual_flow_chart(datasets, custom_title="", show_avg=True, organizati
         lbl = d["label"] or d["station_name"] or f"Station {d['station_id']}"
         offset = (i_s - (total_bars - 1) / 2.0) * slot_w
 
-        if show_avg and avg_vals and any(v > 0 for v in avg_vals):
-            ax2.bar(
-                x + offset, avg_vals, width=avg_w,
-                color=d["avg_color"], alpha=0.7, zorder=2,
-                label=(f"{lbl} — Annual Average Flow (cfs)"
-                       if n_stations > 1 else "Annual Average Flow (cfs)"),
-            )
-
         ax1.bar(
             x + offset, peak_vals, width=peak_w,
-            color=d["peak_color"], zorder=4,
+            color=d["peak_color"],
             label=(f"{lbl} — Annual Peak Flow (cfs)"
                    if n_stations > 1 else "Annual Peak Flow (cfs)"),
         )
+
+        if show_avg and avg_vals and any(v > 0 for v in avg_vals):
+            ax2.bar(
+                x + offset, avg_vals, width=avg_w,
+                color=d["avg_color"],
+                label=(f"{lbl} — Annual Average Flow (cfs)"
+                       if n_stations > 1 else "Annual Average Flow (cfs)"),
+            )
 
     ax1.set_xticks(x)
     ax1.set_xticklabels([str(y) for y in all_years],
