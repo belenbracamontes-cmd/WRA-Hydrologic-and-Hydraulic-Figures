@@ -37,6 +37,8 @@ lp3_page = st.Page("app_pages/3_LP3_Flood_Frequency.py", title="LP3 Flood Freque
 daily_flow_page = st.Page("app_pages/4_Daily_Flow_Duration_Analysis.py",
                            title="Daily Flow & Duration Analysis", icon="🌊",
                            url_path="daily-flow-duration-analysis")
+water_year_type_page = st.Page("app_pages/15_Water_Year_Type.py", title="Water Year Type", icon="🌦️",
+                                url_path="water-year-type")
 
 hecras_1d_page = st.Page("app_pages/5_HEC_RAS_1D_Figures.py", title="1D Figures", icon="📐",
                           url_path="hecras-1d-figures")
@@ -62,7 +64,8 @@ prism_data_page = st.Page("app_pages/13_PRISM_Climate_Data.py", title="PRISM Cli
 
 pg = st.navigation({
     "": [home_page],
-    "USGS station tools": [usgs_intro_page, peak_flow_page, annual_flow_page, lp3_page, daily_flow_page],
+    "USGS station tools": [usgs_intro_page, peak_flow_page, annual_flow_page, lp3_page, daily_flow_page,
+                            water_year_type_page],
     "HEC RAS figures": [hecras_1d_page, hecras_2d_page, hecras_xs_page],
     "NOAA tide tools": [noaa_intro_page, noaa_tides_page],
     "CIMIS weather tools": [cimis_intro_page, cimis_data_page],

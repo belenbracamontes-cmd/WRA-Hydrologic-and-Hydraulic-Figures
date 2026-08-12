@@ -50,6 +50,11 @@ st.markdown(
       percentile (single station and combined two-station), and Weibull
       flow-duration/exceedance analysis (single station with optional
       overlay, and combined two-station with a recurring month/day window).
+    - **🌦️ Water Year Type** — classifies each water year in a station's
+      annual mean flow record as Critical/Dry/Normal/Wet/Very Wet, using
+      quintiles computed fresh from that station's own record (not fixed
+      thresholds) -- shown either as the actual flow bars colored by
+      category, or a categorical 1-5 wetness-scale chart.
 
     ### HEC RAS figures
 
