@@ -7,9 +7,9 @@ There's no station list to browse -- instead, this page lets you pin any
 point (by clicking the map directly, typing lat/lon, or searching by
 place name) and see it on a map, along with what PRISM knows about that
 exact spot: its state/county, grid elevation, and 1991-2020 monthly
-climate normals. Pinned points carry over to the CIMIS-style
-[PRISM Climate Data](/prism-data) page as a shortcut for pulling a full
-time series from one of them later.
+climate normals. Pinned points carry over to the PRISM tab of the
+[Precipitation Data Collector](/precipitation-data-collector) page as a
+shortcut for pulling a full time series from one of them later.
 
 Unlike the pydeck-based USGS/NOAA/CIMIS maps, this page's map is a small
 Leaflet map (via a custom Streamlit component) rather than pydeck --
@@ -42,7 +42,7 @@ with col_title:
         unsafe_allow_html=True,
     )
     st.caption("A gridded climate dataset covering the whole contiguous US -- pin a point here "
-               "before pulling its full time series on the PRISM Climate Data page.")
+               "before pulling its full time series on the Precipitation Data Collector page.")
 
 st.markdown(
     """
@@ -56,7 +56,8 @@ st.markdown(
 
     **Click anywhere on the map below to drop a pin there directly** -- or type coordinates or
     search by place name underneath it. No API key is needed for anything on this page or the
-    [PRISM Climate Data](/prism-data) page -- unlike CIMIS, PRISM's public API is fully open.
+    PRISM tab of the [Precipitation Data Collector](/precipitation-data-collector) page -- unlike
+    CIMIS, PRISM's public API is fully open.
     """
 )
 

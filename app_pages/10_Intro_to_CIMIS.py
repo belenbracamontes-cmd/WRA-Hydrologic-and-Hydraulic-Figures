@@ -54,7 +54,7 @@ st.markdown(
     Resources) operates a statewide network of automated weather stations feeding reference
     evapotranspiration (ETo), precipitation, temperature, and other daily/hourly weather data.
     Every station has a unique **station number** and feeds the same CIMIS Web API the
-    [CIMIS Data](/cimis-data) page pulls from.
+    [Precipitation Data Collector](/precipitation-data-collector) page's CIMIS tab pulls from.
 
     Hover any point on the map below to see a station's name and number, or use the
     county/city/search filters underneath to find and add stations to the map in their own color.

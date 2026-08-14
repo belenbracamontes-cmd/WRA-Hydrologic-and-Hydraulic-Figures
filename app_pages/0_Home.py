@@ -88,20 +88,23 @@ st.markdown(
     - **🗺️ Intro to CIMIS** — statewide map of California's ~275 CIMIS weather stations (same
       map/search/selection feature set as Intro to USGS/NOAA Tides), with a search box to find a
       specific station by name or number, and an active/inactive toggle.
-    - **🌦️ CIMIS Weather Data** — daily or hourly weather data (Reference ETo, precipitation,
-      temperature, humidity, solar radiation, wind, and more) for any CIMIS station, over any date
-      range, chunked automatically. Requires your own free CIMIS appKey. Each value carries CIMIS's
-      own QC flag, plus chart export, CSV download, and copy-paste-ready text.
 
     ### PRISM climate tools
 
     - **🗺️ Intro to PRISM** — PRISM is a gridded climate dataset (not a station network) covering
       the whole contiguous US. Pin any point by coordinates or place-name search, and see its
       state/county, grid elevation, and 1991-2020 monthly climate normals.
-    - **🌦️ PRISM Climate Data** — daily, monthly, or annual precipitation, temperature, dew point,
-      vapor pressure deficit, and solar radiation for any point in the contiguous US, over any date
-      range, chunked automatically. No API key needed. Chart export, CSV download, and
-      copy-paste-ready text included.
+
+    ### Precipitation data tools
+
+    - **🌦️ Precipitation Data Collector** — CIMIS and PRISM data pulls side by side as tabs on one
+      page. **CIMIS**: daily or hourly weather data (Reference ETo, precipitation, temperature,
+      humidity, solar radiation, wind, and more) for any CIMIS station, over any date range,
+      chunked automatically. Requires your own free CIMIS appKey; each value carries CIMIS's own QC
+      flag. **PRISM**: daily, monthly, or annual precipitation, temperature, dew point, vapor
+      pressure deficit, and solar radiation for any point in the contiguous US, over any date
+      range, chunked automatically. No API key needed. Both tabs include chart export, CSV
+      download, and copy-paste-ready text.
 
     More tools will show up here as they're added.
     """

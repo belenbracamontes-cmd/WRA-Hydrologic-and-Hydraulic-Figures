@@ -54,13 +54,12 @@ noaa_tides_page = st.Page("app_pages/9_NOAA_Tide_Gages.py", title="Tide Gage Dat
 
 cimis_intro_page = st.Page("app_pages/10_Intro_to_CIMIS.py", title="Intro to CIMIS", icon="🗺️",
                             url_path="intro-to-cimis")
-cimis_data_page = st.Page("app_pages/11_CIMIS_Data.py", title="CIMIS Weather Data", icon="🌦️",
-                           url_path="cimis-data")
 
 prism_intro_page = st.Page("app_pages/12_Intro_to_PRISM.py", title="Intro to PRISM", icon="🗺️",
                             url_path="intro-to-prism")
-prism_data_page = st.Page("app_pages/13_PRISM_Climate_Data.py", title="PRISM Climate Data", icon="🌦️",
-                           url_path="prism-data")
+
+precip_data_page = st.Page("app_pages/16_Precipitation_Data_Collector.py", title="Precipitation Data Collector",
+                            icon="🌦️", url_path="precipitation-data-collector")
 
 pg = st.navigation({
     "": [home_page],
@@ -68,7 +67,8 @@ pg = st.navigation({
                             water_year_type_page],
     "HEC RAS figures": [hecras_1d_page, hecras_2d_page, hecras_xs_page],
     "NOAA tide tools": [noaa_intro_page, noaa_tides_page],
-    "CIMIS weather tools": [cimis_intro_page, cimis_data_page],
-    "PRISM climate tools": [prism_intro_page, prism_data_page],
+    "CIMIS weather tools": [cimis_intro_page],
+    "PRISM climate tools": [prism_intro_page],
+    "Precipitation data tools": [precip_data_page],
 })
 pg.run()
