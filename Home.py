@@ -67,8 +67,6 @@ pg = st.navigation({
                             water_year_type_page],
     "HEC RAS figures": [hecras_1d_page, hecras_2d_page, hecras_xs_page],
     "NOAA tide tools": [noaa_intro_page, noaa_tides_page],
-    "CIMIS weather tools": [cimis_intro_page],
-    "PRISM climate tools": [prism_intro_page],
-    "Precipitation data tools": [precip_data_page],
+    "Precipitation data tools": [cimis_intro_page, prism_intro_page, precip_data_page],
 })
 pg.run()

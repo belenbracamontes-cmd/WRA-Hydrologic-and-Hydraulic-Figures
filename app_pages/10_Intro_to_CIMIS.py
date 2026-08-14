@@ -46,7 +46,7 @@ with col_title:
         unsafe_allow_html=True,
     )
     st.caption("A statewide look at California's CIMIS weather station network before you pull "
-               "data from one on the CIMIS Data page.")
+               "data from one on the Precipitation Data Collector page.")
 
 st.markdown(
     """
