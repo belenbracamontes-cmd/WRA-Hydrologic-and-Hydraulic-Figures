@@ -27,6 +27,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK
 from core.style_options import render_chart_panel, render_data_color_pickers
+from core.ui_helpers import MAX_COPY_ROWS
 from core.annual_flow_chart import fetch_station_name
 from core.usgs_data import DEFAULT_ITEM_COLOR, fetch_available_parameters, fetch_usgs_series, make_plot
 
@@ -187,12 +188,27 @@ if "usgs_dr_result" in st.session_state:
     )
 
     with st.expander("📋 Copy as text (tab-separated, paste straight into Excel)"):
-        MAX_COPY_ROWS = 5000
-        copy_df = tidy.head(MAX_COPY_ROWS)
-        if len(tidy) > MAX_COPY_ROWS:
-            st.caption(f"Showing the first {MAX_COPY_ROWS:,} of {len(tidy):,} rows here -- "
+        # Items can be at different native intervals (daily vs.
+        # instantaneous), so "one column" here means "one data item" --
+        # picking one drops the now-constant Data Item column and just
+        # shows Date/Value for that item alone.
+        item_names = list(series.keys())
+        if len(item_names) > 1:
+            item_choice = st.selectbox(
+                "Data item to include", ["All items"] + item_names, key="usgs_dr_copy_item",
+            )
+        else:
+            item_choice = "All items"
+
+        if item_choice == "All items":
+            copy_df = tidy
+        else:
+            copy_df = tidy[tidy["Data Item"] == item_choice][["Date", "Value"]]
+
+        if len(copy_df) > MAX_COPY_ROWS:
+            st.caption(f"Showing the first {MAX_COPY_ROWS:,} of {len(copy_df):,} rows here -- "
                        "use the CSV download above for the full dataset.")
-        st.code(copy_df.to_csv(index=False, sep="\t"), language=None)
+        st.code(copy_df.head(MAX_COPY_ROWS).to_csv(index=False, sep="\t"), language=None)
 else:
     st.info("Enter a station ID, pick data items and a date range above, then click "
              "**Fetch Data** to get started.")

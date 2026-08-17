@@ -30,6 +30,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, OCEAN_BLUE_SHADE, OCEAN_BLUE_TINT, TERRACOTA_SHADE
 from core.style_options import render_chart_panel, render_data_color_pickers
+from core.ui_helpers import render_copy_as_text
 from core.noaa_station_map import fetch_all_tide_stations
 from core.noaa_tides import (
     DATUM_OPTIONS, UNITS_OPTIONS, TIMEZONE_OPTIONS, INTERVAL_OPTIONS, SOURCE_OPTIONS,
@@ -232,13 +233,7 @@ if "noaa_result" in st.session_state:
         mime="text/csv", key="noaa_csv_download",
     )
 
-    with st.expander("📋 Copy as text (tab-separated, paste straight into Excel)"):
-        MAX_COPY_ROWS = 5000
-        copy_df = display_df.head(MAX_COPY_ROWS)
-        if len(display_df) > MAX_COPY_ROWS:
-            st.caption(f"Showing the first {MAX_COPY_ROWS:,} of {len(display_df):,} rows here -- "
-                       "use the CSV download above for the full dataset.")
-        st.code(copy_df.to_csv(index=False, sep="\t"), language=None)
+    render_copy_as_text(display_df, key_prefix="noaa", anchor_cols=("Date", "Time"))
 else:
     st.info("Enter a station ID and date range above, then click **Fetch Data** to get started.")
 

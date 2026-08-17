@@ -24,6 +24,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK, FIELD_GREEN_SHADE, CALIFORNIA_SUNSET_SHADE
 from core.style_options import render_chart_panel, render_data_color_pickers
+from core.ui_helpers import render_copy_as_text
 from core.cimis_stations import fetch_all_cimis_stations
 from core.cimis_data import (
     DAILY_DATA_ITEMS, HOURLY_DATA_ITEMS, UNITS_OPTIONS as CIMIS_UNITS_OPTIONS,
@@ -261,13 +262,7 @@ with tab_cimis:
             mime="text/csv", key="cimis_csv_download",
         )
 
-        with st.expander("📋 Copy as text (tab-separated, paste straight into Excel)"):
-            MAX_COPY_ROWS = 5000
-            copy_df = df.head(MAX_COPY_ROWS)
-            if len(df) > MAX_COPY_ROWS:
-                st.caption(f"Showing the first {MAX_COPY_ROWS:,} of {len(df):,} rows here -- "
-                           "use the CSV download above for the full dataset.")
-            st.code(copy_df.to_csv(index=False, sep="\t"), language=None)
+        render_copy_as_text(df, key_prefix="cimis", anchor_cols=("Date", "Hour"))
     else:
         st.info("Enter your appKey, pick a station and date range above, then click **Fetch Data** "
                  "to get started.")
@@ -434,12 +429,6 @@ with tab_prism:
             mime="text/csv", key="prism_csv_download",
         )
 
-        with st.expander("📋 Copy as text (tab-separated, paste straight into Excel)"):
-            MAX_COPY_ROWS = 5000
-            copy_df = df.head(MAX_COPY_ROWS)
-            if len(df) > MAX_COPY_ROWS:
-                st.caption(f"Showing the first {MAX_COPY_ROWS:,} of {len(df):,} rows here -- "
-                           "use the CSV download above for the full dataset.")
-            st.code(copy_df.to_csv(index=False, sep="\t"), language=None)
+        render_copy_as_text(df, key_prefix="prism", anchor_cols=("Date",))
     else:
         st.info("Pick a location and date range above, then click **Fetch Data** to get started.")
