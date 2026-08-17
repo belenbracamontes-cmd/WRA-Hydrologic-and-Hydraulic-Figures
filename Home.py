@@ -39,6 +39,8 @@ daily_flow_page = st.Page("app_pages/4_Daily_Flow_Duration_Analysis.py",
                            url_path="daily-flow-duration-analysis")
 water_year_type_page = st.Page("app_pages/15_Water_Year_Type.py", title="Water Year Type", icon="🌦️",
                                 url_path="water-year-type")
+usgs_data_retrieval_page = st.Page("app_pages/17_USGS_Data_Retrieval.py", title="USGS Data Retrieval",
+                                    icon="🔎", url_path="usgs-data-retrieval")
 
 hecras_1d_page = st.Page("app_pages/5_HEC_RAS_1D_Figures.py", title="1D Figures", icon="📐",
                           url_path="hecras-1d-figures")
@@ -64,7 +66,7 @@ precip_data_page = st.Page("app_pages/16_Precipitation_Data_Collector.py", title
 pg = st.navigation({
     "": [home_page],
     "USGS station tools": [usgs_intro_page, peak_flow_page, annual_flow_page, lp3_page, daily_flow_page,
-                            water_year_type_page],
+                            water_year_type_page, usgs_data_retrieval_page],
     "HEC RAS figures": [hecras_1d_page, hecras_2d_page, hecras_xs_page],
     "NOAA tide tools": [noaa_intro_page, noaa_tides_page],
     "Precipitation data tools": [cimis_intro_page, prism_intro_page, precip_data_page],

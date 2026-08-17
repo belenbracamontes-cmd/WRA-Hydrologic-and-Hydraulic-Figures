@@ -55,6 +55,12 @@ st.markdown(
       quintiles computed fresh from that station's own record (not fixed
       thresholds) -- shown either as the actual flow bars colored by
       category, or a categorical 1-5 wetness-scale chart.
+    - **🔎 USGS Data Retrieval** — general-purpose companion to the tools
+      above: pulls whatever data type a station actually reports (gage
+      height / water-surface elevation, water temperature, specific
+      conductance, dissolved oxygen, turbidity, and more, in addition to
+      streamflow), auto-discovered per station rather than assumed in
+      advance, over any date range.
 
     ### HEC RAS figures
 
