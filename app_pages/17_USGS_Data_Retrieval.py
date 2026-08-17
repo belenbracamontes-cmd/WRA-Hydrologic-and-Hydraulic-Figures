@@ -27,7 +27,7 @@ import streamlit as st
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from core.branding import logo_path_if_present, BRAND_DARK
 from core.style_options import render_chart_panel, render_data_color_pickers
-from core.ui_helpers import MAX_COPY_ROWS
+from core.ui_helpers import render_copy_as_text
 from core.annual_flow_chart import fetch_station_name
 from core.usgs_data import DEFAULT_ITEM_COLOR, fetch_available_parameters, fetch_usgs_series, make_plot
 
@@ -170,45 +170,25 @@ if "usgs_dr_result" in st.session_state:
 
     st.divider()
     st.subheader("Data table")
-    # Long/tidy format so items at different native intervals (daily vs.
-    # instantaneous) can still share one table and one CSV.
-    tidy_frames = []
+    # One column per data item (wide format) -- items are merged on Date,
+    # so an item with no reading at another item's exact timestamp (e.g.
+    # a daily value next to a 15-minute instantaneous one) just shows
+    # blank there rather than forcing everything onto a single frequency.
+    wide = None
     for label, df in series.items():
-        d = df.copy()
-        d["Data Item"] = label
-        tidy_frames.append(d)
-    tidy = pd.concat(tidy_frames, ignore_index=True)[["Date", "Data Item", "value"]]
-    tidy.columns = ["Date", "Data Item", "Value"]
-    st.dataframe(tidy, use_container_width=True, hide_index=True, height=400)
+        d = df.rename(columns={"value": label})[["Date", label]]
+        wide = d if wide is None else wide.merge(d, on="Date", how="outer")
+    wide = wide.sort_values("Date").reset_index(drop=True)
 
-    csv_bytes = tidy.to_csv(index=False).encode("utf-8")
+    st.dataframe(wide, use_container_width=True, hide_index=True, height=400)
+
+    csv_bytes = wide.to_csv(index=False).encode("utf-8")
     st.download_button(
         "Download CSV", data=csv_bytes,
         file_name=f"usgs_{r['station_id']}.csv", mime="text/csv", key="usgs_dr_csv_download",
     )
 
-    with st.expander("📋 Copy as text (tab-separated, paste straight into Excel)"):
-        # Items can be at different native intervals (daily vs.
-        # instantaneous), so "one column" here means "one data item" --
-        # picking one drops the now-constant Data Item column and just
-        # shows Date/Value for that item alone.
-        item_names = list(series.keys())
-        if len(item_names) > 1:
-            item_choice = st.selectbox(
-                "Data item to include", ["All items"] + item_names, key="usgs_dr_copy_item",
-            )
-        else:
-            item_choice = "All items"
-
-        if item_choice == "All items":
-            copy_df = tidy
-        else:
-            copy_df = tidy[tidy["Data Item"] == item_choice][["Date", "Value"]]
-
-        if len(copy_df) > MAX_COPY_ROWS:
-            st.caption(f"Showing the first {MAX_COPY_ROWS:,} of {len(copy_df):,} rows here -- "
-                       "use the CSV download above for the full dataset.")
-        st.code(copy_df.head(MAX_COPY_ROWS).to_csv(index=False, sep="\t"), language=None)
+    render_copy_as_text(wide, key_prefix="usgs_dr", anchor_cols=("Date",))
 else:
     st.info("Enter a station ID, pick data items and a date range above, then click "
              "**Fetch Data** to get started.")
